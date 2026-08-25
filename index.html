@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>برنامه غذایی</title>
+<title>هسته انرژی | ردیاب تغذیه</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
 
@@ -190,6 +190,21 @@ input{font-family:inherit; color:inherit;}
 .quick-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
 .quick-card{display:flex; align-items:center; gap:9px; padding:10px; border-radius:14px; background:var(--surface); border:1px solid var(--border); text-align:right; transition:transform .15s, background .2s;}
 .quick-card:active{transform:scale(0.96);}
+.quick-card{position:relative;overflow:hidden;}
+.quick-card .qphoto{width:44px;height:44px;border-radius:12px;object-fit:cover;flex-shrink:0;background:var(--surface-2);}
+.quick-card .qbody{flex:1;min-width:0;}
+.quick-card .qportion{font-size:10.5px;color:var(--fiber);margin-top:3px;}
+.quick-card .qimg-link{position:absolute;top:7px;left:7px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;font-size:12px;text-decoration:none;z-index:2;}
+.quick-card .qimg-link:hover{background:rgba(0,0,0,.65);}
+.portion-box{margin-top:12px;}
+.portion-title{font-size:11.5px;color:var(--text-dim);margin-bottom:7px;font-weight:700;}
+.portion-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.portion-btn{padding:9px 7px;border-radius:12px;background:var(--surface);border:1px solid var(--border);font-size:11.5px;color:var(--text-dim);}
+.portion-btn.active{background:var(--fiber-soft);border-color:var(--fiber);color:var(--fiber);font-weight:800;}
+.custom-amount{display:flex;gap:7px;align-items:center;margin-top:8px;}
+.custom-amount input{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px;text-align:center;font-family:'Space Grotesk',sans-serif;}
+.custom-amount span{font-size:11px;color:var(--text-faint);}
+
 .quick-card .qi{font-size:19px;}
 .quick-card .qn{font-size:12px; font-weight:700; line-height:1.3;}
 .quick-card .qk{font-size:10.5px; color:var(--text-faint); font-family:'Space Grotesk',sans-serif;}
@@ -378,7 +393,15 @@ input{font-family:inherit; color:inherit;}
             <div class="qty-sub" id="qtySub">مقدار مصرفی را وارد کن</div>
           </div>
         </div>
-        <div class="grams-input">
+        <div class="portion-box">
+          <div class="portion-title">مقدار مصرفی را انتخاب کن</div>
+          <div class="portion-grid" id="portionGrid"></div>
+          <div class="custom-amount" id="customAmountWrap" style="display:none;">
+            <input id="customAmount" type="number" inputmode="decimal" placeholder="مثلاً ۱۵۰">
+            <span>گرم</span>
+          </div>
+        </div>
+        <div class="grams-input" style="margin-top:10px;">
           <button id="gramsMinus">−</button>
           <input id="gramsVal" type="number" inputmode="numeric" value="100">
           <button id="gramsPlus">+</button>
@@ -466,33 +489,33 @@ input{font-family:inherit; color:inherit;}
 
   /* ---------------- DATA ---------------- */
   var QUICK_FOODS = [
-    {name:"برنج سفید پخته", icon:"🍚", cat:"غلات", kcal:130, carb:28, protein:2.7, fat:0.3, fiber:0.4},
-    {name:"نان لواش", icon:"🫓", cat:"غلات", kcal:274, carb:54, protein:9, fat:1.5, fiber:3},
-    {name:"نان سنگک", icon:"🍞", cat:"غلات", kcal:250, carb:50, protein:8, fat:1, fiber:4},
-    {name:"ماکارونی پخته", icon:"🍝", cat:"غلات", kcal:158, carb:31, protein:5.8, fat:0.9, fiber:1.8},
-    {name:"سیب‌زمینی پخته", icon:"🥔", cat:"غلات", kcal:87, carb:20, protein:1.9, fat:0.1, fiber:1.8},
-    {name:"سینه مرغ پخته", icon:"🍗", cat:"پروتئین", kcal:165, carb:0, protein:31, fat:3.6, fiber:0},
-    {name:"گوشت گوسفند پخته", icon:"🥩", cat:"پروتئین", kcal:250, carb:0, protein:25, fat:17, fiber:0},
-    {name:"ماهی قزل‌آلا پخته", icon:"🐟", cat:"پروتئین", kcal:190, carb:0, protein:25, fat:9, fiber:0},
-    {name:"تخم‌مرغ پخته", icon:"🥚", cat:"پروتئین", kcal:155, carb:1.1, protein:13, fat:11, fiber:0},
-    {name:"عدس پخته", icon:"🫘", cat:"پروتئین", kcal:116, carb:20, protein:9, fat:0.4, fiber:8},
-    {name:"نخود پخته", icon:"🫛", cat:"پروتئین", kcal:164, carb:27, protein:9, fat:2.6, fiber:8},
-    {name:"لوبیا قرمز پخته", icon:"🫘", cat:"پروتئین", kcal:127, carb:23, protein:9, fat:0.5, fiber:8},
-    {name:"ماست ساده", icon:"🥣", cat:"لبنیات", kcal:61, carb:4.7, protein:3.5, fat:3.3, fiber:0},
-    {name:"شیر کامل", icon:"🥛", cat:"لبنیات", kcal:61, carb:4.8, protein:3.2, fat:3.3, fiber:0},
-    {name:"پنیر سفید", icon:"🧀", cat:"لبنیات", kcal:264, carb:3.4, protein:18, fat:21, fiber:0},
-    {name:"سیب", icon:"🍎", cat:"میوه", kcal:52, carb:14, protein:0.3, fat:0.2, fiber:2.4},
-    {name:"موز", icon:"🍌", cat:"میوه", kcal:89, carb:23, protein:1.1, fat:0.3, fiber:2.6},
-    {name:"خرما", icon:"🌴", cat:"میوه", kcal:282, carb:75, protein:2.5, fat:0.4, fiber:8},
-    {name:"خیار", icon:"🥒", cat:"سبزی", kcal:15, carb:3.6, protein:0.7, fat:0.1, fiber:0.5},
-    {name:"گوجه‌فرنگی", icon:"🍅", cat:"سبزی", kcal:18, carb:3.9, protein:0.9, fat:0.2, fiber:1.2},
-    {name:"گردو", icon:"🌰", cat:"آجیل", kcal:654, carb:14, protein:15, fat:65, fiber:6.7},
-    {name:"بادام", icon:"🥜", cat:"آجیل", kcal:579, carb:22, protein:21, fat:50, fiber:12.5},
-    {name:"پسته", icon:"🥜", cat:"آجیل", kcal:560, carb:28, protein:20, fat:45, fiber:10},
-    {name:"عسل", icon:"🍯", cat:"شیرینی", kcal:304, carb:82, protein:0.3, fat:0, fiber:0.2},
-    {name:"شکلات تلخ", icon:"🍫", cat:"شیرینی", kcal:546, carb:61, protein:4.9, fat:31, fiber:7}
-  ];
-  var CATS = ["همه","غلات","پروتئین","لبنیات","میوه","سبزی","آجیل","شیرینی"];
+    {name:"برنج سفید پخته",icon:"🍚",cat:"غلات",kcal:130,carb:28,protein:2.7,fat:0.3,fiber:0.4,portionType:"spoon",portionLabel:"قاشق غذاخوری",portionGram:15,photo:"https://commons.wikimedia.org/wiki/Special:Redirect/file/Cooked%20Rice.jpg",photoPage:"https://commons.wikimedia.org/wiki/File:Cooked_Rice.jpg"},
+    {name:"نان لواش",icon:"🫓",cat:"غلات",kcal:274,carb:54,protein:9,fat:1.5,fiber:3,portionType:"palm",portionLabel:"کف دست",portionGram:30,photo:"https://commons.wikimedia.org/wiki/Special:Redirect/file/Lavash%20Bread.jpg",photoPage:"https://commons.wikimedia.org/wiki/File:Lavash_Bread.jpg"},
+    {name:"نان سنگک",icon:"🍞",cat:"غلات",kcal:250,carb:50,protein:8,fat:1,fiber:4,portionType:"palm",portionLabel:"کف دست",portionGram:35},
+    {name:"ماکارونی پخته",icon:"🍝",cat:"غلات",kcal:158,carb:31,protein:5.8,fat:0.9,fiber:1.8,portionType:"grams",portionLabel:"گرم",portionGram:100},
+    {name:"سیب‌زمینی پخته",icon:"🥔",cat:"غلات",kcal:87,carb:20,protein:1.9,fat:0.1,fiber:1.8,portionType:"piece",portionLabel:"عدد متوسط",portionGram:150},
+    {name:"سینه مرغ پخته",icon:"🍗",cat:"پروتئین",kcal:165,carb:0,protein:31,fat:3.6,fiber:0,portionType:"palm",portionLabel:"کف دست",portionGram:100},
+    {name:"گوشت گوسفند پخته",icon:"🥩",cat:"پروتئین",kcal:250,carb:0,protein:25,fat:17,fiber:0,portionType:"palm",portionLabel:"کف دست",portionGram:90},
+    {name:"ماهی قزل‌آلا پخته",icon:"🐟",cat:"پروتئین",kcal:190,carb:0,protein:25,fat:9,fiber:0,portionType:"palm",portionLabel:"کف دست",portionGram:100},
+    {name:"تخم‌مرغ پخته",icon:"🥚",cat:"پروتئین",kcal:155,carb:1.1,protein:13,fat:11,fiber:0,portionType:"piece",portionLabel:"عدد",portionGram:50,photo:"https://commons.wikimedia.org/wiki/Special:Redirect/file/Boiled%20eggs.jpg",photoPage:"https://commons.wikimedia.org/wiki/File:Boiled_eggs.jpg"},
+    {name:"عدسی",icon:"🫘",cat:"پروتئین",kcal:100,carb:16,protein:6.5,fat:1.5,fiber:5,portionType:"grams",portionLabel:"گرم",portionGram:100},
+    {name:"عدس پخته",icon:"🫘",cat:"پروتئین",kcal:116,carb:20,protein:9,fat:0.4,fiber:8,portionType:"grams",portionLabel:"گرم",portionGram:100},
+    {name:"نخود پخته",icon:"🫛",cat:"پروتئین",kcal:164,carb:27,protein:9,fat:2.6,fiber:8,portionType:"grams",portionLabel:"گرم",portionGram:100},
+    {name:"لوبیا قرمز پخته",icon:"🫘",cat:"پروتئین",kcal:127,carb:23,protein:9,fat:0.5,fiber:8,portionType:"grams",portionLabel:"گرم",portionGram:100},
+    {name:"ماست ساده",icon:"🥣",cat:"لبنیات",kcal:61,carb:4.7,protein:3.5,fat:3.3,fiber:0,portionType:"cup",portionLabel:"کاسه کوچک",portionGram:150},
+    {name:"شیر کامل",icon:"🥛",cat:"لبنیات",kcal:61,carb:4.8,protein:3.2,fat:3.3,fiber:0,portionType:"glass",portionLabel:"لیوان",portionGram:240},
+    {name:"پنیر سفید",icon:"🧀",cat:"لبنیات",kcal:264,carb:3.4,protein:18,fat:21,fiber:0,portionType:"matchbox",portionLabel:"قوطی کبریت",portionGram:30},
+    {name:"سیب",icon:"🍎",cat:"میوه",kcal:52,carb:14,protein:0.3,fat:0.2,fiber:2.4,portionType:"piece",portionLabel:"عدد متوسط",portionGram:180},
+    {name:"موز",icon:"🍌",cat:"میوه",kcal:89,carb:23,protein:1.1,fat:0.3,fiber:2.6,portionType:"piece",portionLabel:"عدد متوسط",portionGram:118},
+    {name:"خرما",icon:"🌴",cat:"میوه",kcal:282,carb:75,protein:2.5,fat:0.4,fiber:8,portionType:"piece",portionLabel:"عدد",portionGram:24},
+    {name:"خیار",icon:"🥒",cat:"سبزی",kcal:15,carb:3.6,protein:0.7,fat:0.1,fiber:0.5,portionType:"piece",portionLabel:"عدد کوچک",portionGram:100},
+    {name:"گوجه‌فرنگی",icon:"🍅",cat:"سبزی",kcal:18,carb:3.9,protein:0.9,fat:0.2,fiber:1.2,portionType:"piece",portionLabel:"عدد متوسط",portionGram:120},
+    {name:"گردو",icon:"🌰",cat:"آجیل",kcal:654,carb:14,protein:15,fat:65,fiber:6.7,portionType:"handful",portionLabel:"یک مشت کوچک",portionGram:28},
+    {name:"بادام",icon:"🥜",cat:"آجیل",kcal:579,carb:22,protein:21,fat:50,fiber:12.5,portionType:"handful",portionLabel:"یک مشت کوچک",portionGram:28},
+    {name:"پسته",icon:"🥜",cat:"آجیل",kcal:560,carb:28,protein:20,fat:45,fiber:10,portionType:"handful",portionLabel:"یک مشت کوچک",portionGram:28},
+    {name:"عسل",icon:"🍯",cat:"شیرینی",kcal:304,carb:82,protein:0.3,fat:0,fiber:0.2,portionType:"spoon",portionLabel:"قاشق غذاخوری",portionGram:21},
+    {name:"شکلات تلخ",icon:"🍫",cat:"شیرینی",kcal:546,carb:61,protein:4.9,fat:31,fiber:7,portionType:"piece",portionLabel:"یک تکه",portionGram:10}
+  ];  var CATS = ["همه","غلات","پروتئین","لبنیات","میوه","سبزی","آجیل","شیرینی"];
 
   var DEFAULT_GOALS = {calories:2200, carb:275, protein:90, fat:70, fiber:30, water:8};
 
@@ -646,7 +669,7 @@ input{font-family:inherit; color:inherit;}
       html += '<div class="log-item" data-id="'+item.id+'">'+
         '<div class="log-icon">'+item.icon+'</div>'+
         '<div class="log-info">'+
-          '<div class="log-name">'+escapeHtml(item.name)+(item.grams?(' · '+item.grams+' گرم'):'')+'</div>'+
+          '<div class="log-name">'+escapeHtml(item.name)+(item.portion?(' · '+escapeHtml(item.portion)):(item.grams?(' · '+item.grams+' گرم'):''))+'</div>'+
           '<div class="log-macros">ک'+Math.round(item.carb)+' · پ'+Math.round(item.protein)+' · چ'+Math.round(item.fat)+' · ف'+Math.round(item.fiber)+'</div>'+
         '</div>'+
         '<div class="log-kcal">'+Math.round(item.kcal)+'</div>'+
@@ -789,16 +812,18 @@ input{font-family:inherit; color:inherit;}
   });
   function renderQuickGrid(){
     var list = activeCat === "همه" ? QUICK_FOODS : QUICK_FOODS.filter(function(f){ return f.cat === activeCat; });
-    quickGrid.innerHTML = list.map(function(f, i){
-      return '<button class="quick-card" data-idx="'+QUICK_FOODS.indexOf(f)+'">'+
-        '<span class="qi">'+f.icon+'</span>'+
-        '<span><span class="qn">'+f.name+'</span><br><span class="qk">'+f.kcal+' kcal / ۱۰۰گ</span></span>'+
-      '</button>';
+    quickGrid.innerHTML = list.map(function(f){
+      var idx=QUICK_FOODS.indexOf(f);
+      var portionText=f.portionType==="grams" ? "ورود مقدار بر حسب گرم" : "پیشنهاد: "+f.portionLabel;
+      var img=f.photo ? '<img class="qphoto" src="'+f.photo+'" alt="'+escapeHtml(f.name)+'" loading="lazy">' : '<span class="qi">'+f.icon+'</span>';
+      var link=f.photo ? '<a class="qimg-link" href="'+f.photoPage+'" target="_blank" rel="noopener" title="منبع عکس">↗</a>' : '';
+      return '<button class="quick-card" data-idx="'+idx+'">'+link+img+'<span class="qbody"><span class="qn">'+f.name+'</span><br><span class="qk">'+f.kcal+' kcal / ۱۰۰گ</span><br><span class="qportion">'+portionText+'</span></span></button>';
     }).join("");
-    Array.prototype.forEach.call(quickGrid.querySelectorAll(".quick-card"), function(btn){
-      btn.addEventListener("click", function(){
-        var f = QUICK_FOODS[parseInt(btn.getAttribute("data-idx"),10)];
-        openQty({name:f.name, icon:f.icon, per100:{kcal:f.kcal, carb:f.carb, protein:f.protein, fat:f.fat, fiber:f.fiber}});
+    Array.prototype.forEach.call(quickGrid.querySelectorAll(".quick-card"),function(btn){
+      btn.addEventListener("click",function(e){
+        if(e.target.closest && e.target.closest(".qimg-link")) return;
+        var f=QUICK_FOODS[parseInt(btn.getAttribute("data-idx"),10)];
+        openQty({name:f.name,icon:f.icon,per100:{kcal:f.kcal,carb:f.carb,protein:f.protein,fat:f.fat,fiber:f.fiber},portionType:f.portionType,portionLabel:f.portionLabel,portionGram:f.portionGram});
       });
     });
   }
@@ -859,13 +884,37 @@ input{font-family:inherit; color:inherit;}
 
   /* Quantity step */
   var gramsVal = document.getElementById("gramsVal");
+  var selectedPortion=null;
+  function portionOptions(food){
+    var options=[];
+    if(food.portionType==="grams") options=[{label:"گرم",grams:100},{label:"۵۰ گرم",grams:50},{label:"۱۵۰ گرم",grams:150},{label:"۲۰۰ گرم",grams:200}];
+    else {
+      options=[{label:food.portionLabel,grams:food.portionGram}];
+      if(food.portionType==="piece") options.push({label:"۲ عدد",grams:food.portionGram*2});
+      if(food.portionType==="palm") options.push({label:"۲ کف دست",grams:food.portionGram*2});
+      if(food.portionType==="spoon") options.push({label:"۲ قاشق",grams:food.portionGram*2});
+      if(food.portionType==="glass") options.push({label:"۲ لیوان",grams:food.portionGram*2});
+      if(food.portionType==="handful") options.push({label:"۲ مشت کوچک",grams:food.portionGram*2});
+      options.push({label:"مقدار دلخواه",grams:null});
+    }
+    return options;
+  }
+  function renderPortions(food){
+    var grid=document.getElementById("portionGrid"),wrap=document.getElementById("customAmountWrap"),opts=portionOptions(food);
+    grid.innerHTML=opts.map(function(o,i){return '<button type="button" class="portion-btn'+(i===0?' active':'')+'" data-grams="'+(o.grams===null?'custom':o.grams)+'">'+o.label+'</button>';}).join("");
+    selectedPortion=opts[0]; wrap.style.display="none";
+    Array.prototype.forEach.call(grid.querySelectorAll(".portion-btn"),function(btn){btn.addEventListener("click",function(){
+      Array.prototype.forEach.call(grid.querySelectorAll(".portion-btn"),function(b){b.classList.remove("active")}); btn.classList.add("active");
+      var g=btn.getAttribute("data-grams");
+      if(g==="custom"){wrap.style.display="flex";selectedPortion={label:"مقدار دلخواه",grams:0};}
+      else{wrap.style.display="none";selectedPortion={label:btn.textContent,grams:parseFloat(g)};gramsVal.value=selectedPortion.grams;updatePreview();}
+    });});
+    document.getElementById("customAmount").value="";
+    document.getElementById("customAmount").oninput=function(){selectedPortion.grams=Math.max(0,parseFloat(this.value)||0);gramsVal.value=selectedPortion.grams;updatePreview();};
+  }
   function openQty(food){
-    selectedFood = food;
-    document.getElementById("qtyIcon").textContent = food.icon;
-    document.getElementById("qtyName").textContent = food.name;
-    gramsVal.value = 100;
-    updatePreview();
-    showQtyUI();
+    selectedFood=food; document.getElementById("qtyIcon").textContent=food.icon; document.getElementById("qtyName").textContent=food.name;
+    gramsVal.value=food.portionGram||100; renderPortions(food); updatePreview(); showQtyUI();
   }
   function updatePreview(){
     var grams = Math.max(0, parseFloat(gramsVal.value) || 0);
@@ -901,7 +950,7 @@ input{font-family:inherit; color:inherit;}
     var protein = parseFloat(document.getElementById("mProtein").value) || 0;
     var fat = parseFloat(document.getElementById("mFat").value) || 0;
     var fiber = parseFloat(document.getElementById("mFiber").value) || 0;
-    addLogItem({name:name, icon:"✍️", grams:null, kcal:kcal, carb:carb, protein:protein, fat:fat, fiber:fiber});
+    addLogItem({name:name, icon:"✍️", grams:null, portion:null, kcal:kcal, carb:carb, protein:protein, fat:fat, fiber:fiber});
     ["mName","mKcal","mCarb","mProtein","mFat","mFiber"].forEach(function(id){ document.getElementById(id).value=""; });
     closeAdd();
   });

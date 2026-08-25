@@ -196,7 +196,8 @@ input{font-family:inherit; color:inherit;}
 
 .field{margin-bottom:12px;}
 .field label{display:block; font-size:12px; color:var(--text-dim); margin-bottom:6px; font-weight:600;}
-.field input{width:100%; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:11px 13px; font-size:13.5px;}
+.field input, .field select{width:100%; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:11px 13px; font-size:13.5px; color:var(--text); font-family:'Vazirmatn', sans-serif; appearance:none;}
+.field select{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2393a89f' stroke-width='2'><path d='M6 9l6 6 6-6'/></svg>"); background-repeat:no-repeat; background-position:left 12px center; background-size:14px;}
 .field-row{display:flex; gap:10px;}
 .field-row .field{flex:1;}
 
@@ -413,7 +414,47 @@ input{font-family:inherit; color:inherit;}
       <div class="field"><label>فیبر (گرم)</label><input id="gFiber" type="number" inputmode="numeric"></div>
     </div>
     <div class="field"><label>تعداد لیوان آب</label><input id="gWater" type="number" inputmode="numeric"></div>
-    <button class="btn-primary" id="saveSettings">ذخیره</button>
+
+    <button class="btn-ghost" id="toggleCalc" type="button">📐 محاسبه خودکار از روی وزن</button>
+
+    <div id="calcBox" style="display:none;">
+      <div class="field">
+        <label>جنسیت</label>
+        <div class="chip-row" id="genderChips" style="margin-bottom:12px; padding-bottom:0;">
+          <button class="chip active" type="button" data-gender="male">مرد</button>
+          <button class="chip" type="button" data-gender="female">زن</button>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>وزن (کیلوگرم)</label><input id="calcWeight" type="number" inputmode="decimal" placeholder="مثلاً ۷۰"></div>
+        <div class="field"><label>قد (سانتی‌متر)</label><input id="calcHeight" type="number" inputmode="decimal" placeholder="مثلاً ۱۷۵"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>سن</label><input id="calcAge" type="number" inputmode="numeric" placeholder="مثلاً ۲۸"></div>
+        <div class="field">
+          <label>سطح فعالیت</label>
+          <select id="calcActivity">
+            <option value="1.2">کم‌تحرک</option>
+            <option value="1.375">فعالیت سبک</option>
+            <option value="1.55" selected>فعالیت متوسط</option>
+            <option value="1.725">فعالیت زیاد</option>
+            <option value="1.9">فعالیت خیلی زیاد</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>هدف</label>
+        <div class="chip-row" id="goalChips" style="margin-bottom:12px; padding-bottom:0;">
+          <button class="chip" type="button" data-goal="-500">کاهش وزن</button>
+          <button class="chip active" type="button" data-goal="0">حفظ وزن</button>
+          <button class="chip" type="button" data-goal="300">افزایش وزن</button>
+        </div>
+      </div>
+      <div class="hint">این محاسبه یک تخمین کلی‌ست (فرمول میفلین-سنت جیور). فیلدهای بالا رو با نتیجه پر می‌کنه؛ برای ذخیره نهایی هنوز باید «ذخیره» رو بزنی.</div>
+      <button class="btn-primary" id="calcFillBtn" type="button">محاسبه و پر کردن فیلدها</button>
+    </div>
+
+    <button class="btn-primary" id="saveSettings" style="margin-top:12px;">ذخیره</button>
   </div>
 </div>
 
@@ -471,14 +512,27 @@ input{font-family:inherit; color:inherit;}
   function dateKey(d){ return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()); }
   function isToday(d){ var t=new Date(); return dateKey(d)===dateKey(t); }
 
+  var LS_PREFIX = "hasteEnergy:";
   async function safeGet(key){
+    if(window.storage){
+      try{
+        var r = await window.storage.get(key, false);
+        return r ? JSON.parse(r.value) : null;
+      }catch(e){ /* fall through to localStorage */ }
+    }
     try{
-      var r = await window.storage.get(key, false);
-      return r ? JSON.parse(r.value) : null;
+      var v = localStorage.getItem(LS_PREFIX + key);
+      return v ? JSON.parse(v) : null;
     }catch(e){ return null; }
   }
   async function safeSet(key, value){
-    try{ await window.storage.set(key, JSON.stringify(value), false); }
+    if(window.storage){
+      try{
+        await window.storage.set(key, JSON.stringify(value), false);
+        return;
+      }catch(e){ /* fall through to localStorage */ }
+    }
+    try{ localStorage.setItem(LS_PREFIX + key, JSON.stringify(value)); }
     catch(e){ console.error("storage set failed", e); }
   }
 
@@ -885,6 +939,59 @@ input{font-family:inherit; color:inherit;}
     saveGoals();
     settingsOverlay.classList.remove("open");
     render();
+  });
+
+  /* ---------------- AUTO CALC GOALS ---------------- */
+  var calcGender = "male";
+  var calcGoal = "0";
+  var calcBox = document.getElementById("calcBox");
+  var toggleCalcBtn = document.getElementById("toggleCalc");
+  toggleCalcBtn.addEventListener("click", function(){
+    var open = calcBox.style.display !== "none";
+    calcBox.style.display = open ? "none" : "block";
+    toggleCalcBtn.textContent = open ? "📐 محاسبه خودکار از روی وزن" : "📐 بستن محاسبه‌گر";
+  });
+  Array.prototype.forEach.call(document.querySelectorAll("#genderChips .chip"), function(btn){
+    btn.addEventListener("click", function(){
+      calcGender = btn.getAttribute("data-gender");
+      Array.prototype.forEach.call(document.querySelectorAll("#genderChips .chip"), function(b){ b.classList.toggle("active", b===btn); });
+    });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll("#goalChips .chip"), function(btn){
+    btn.addEventListener("click", function(){
+      calcGoal = btn.getAttribute("data-goal");
+      Array.prototype.forEach.call(document.querySelectorAll("#goalChips .chip"), function(b){ b.classList.toggle("active", b===btn); });
+    });
+  });
+  document.getElementById("calcFillBtn").addEventListener("click", function(){
+    var w = parseFloat(document.getElementById("calcWeight").value);
+    var h = parseFloat(document.getElementById("calcHeight").value);
+    var a = parseFloat(document.getElementById("calcAge").value);
+    var activity = parseFloat(document.getElementById("calcActivity").value);
+    var goalAdj = parseFloat(calcGoal);
+    if(!w || !h || !a || w<=0 || h<=0 || a<=0){
+      alert("لطفاً وزن، قد و سن رو درست وارد کن.");
+      return;
+    }
+    /* Mifflin-St Jeor BMR */
+    var bmr = calcGender === "male"
+      ? (10*w + 6.25*h - 5*a + 5)
+      : (10*w + 6.25*h - 5*a - 161);
+    var tdee = bmr * activity;
+    var calories = Math.max(1200, Math.round(tdee + goalAdj));
+
+    var proteinPerKg = goalAdj < 0 ? 2.0 : (goalAdj > 0 ? 1.6 : 1.8);
+    var protein = Math.round(w * proteinPerKg);
+    var fat = Math.round((calories * 0.25) / 9);
+    var carbCals = Math.max(0, calories - protein*4 - fat*9);
+    var carb = Math.round(carbCals / 4);
+    var fiber = Math.round((calories/1000) * 14);
+
+    document.getElementById("gKcal").value = calories;
+    document.getElementById("gCarb").value = carb;
+    document.getElementById("gProtein").value = protein;
+    document.getElementById("gFat").value = fat;
+    document.getElementById("gFiber").value = fiber;
   });
 
   /* ---------------- INIT ---------------- */

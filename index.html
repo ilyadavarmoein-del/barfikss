@@ -2,1055 +2,1143 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>بفهم چی میخوری</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover">
+<title>بارفیکساتو بزن</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
+  :root{
+    --bg:#0a0e13;
+    --bg-elev:#121821;
+    --bg-elev-2:#1a2230;
+    --line:rgba(255,255,255,0.08);
+    --line-strong:rgba(255,255,255,0.16);
+    --text:#eef2f6;
+    --text-dim:#8d9bab;
+    --text-faint:#5c6b7d;
+    --ember:#ff7a33;
+    --ember-2:#ffb648;
+    --steel:#5fb4ff;
+    --good:#3ddc84;
+    --bad:#ff5c5c;
+    --radius-lg:22px;
+    --radius-md:14px;
+    --radius-sm:9px;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;padding:0;height:100%;
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Vazirmatn,Tahoma,"Iranian Sans",sans-serif;
+    -webkit-tap-highlight-color:transparent;
+    overscroll-behavior:none;
+  }
+  #app{
+    position:relative;
+    max-width:480px;
+    margin:0 auto;
+    min-height:100vh;
+    min-height:100dvh;
+    background:
+      radial-gradient(1200px 600px at 50% -10%, rgba(255,122,51,0.10), transparent 60%),
+      var(--bg);
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+  }
+  .view{
+    display:none;
+    flex:1;
+    flex-direction:column;
+    padding:calc(20px + var(--safe-top)) 20px calc(20px + var(--safe-bottom));
+    animation:fadeIn .35s ease;
+  }
+  .view.active{display:flex;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
 
-:root{
-  --bg-0:#080f0d;
-  --bg-1:#0d1a16;
-  --surface:rgba(255,255,255,0.045);
-  --surface-2:rgba(255,255,255,0.075);
-  --border:rgba(255,255,255,0.09);
-  --text:#eef6f1;
-  --text-dim:#93a89f;
-  --text-faint:#5b6d66;
-  --carb:#f2a93b;
-  --carb-soft:rgba(242,169,59,0.16);
-  --protein:#ef5b72;
-  --protein-soft:rgba(239,91,114,0.16);
-  --fat:#b98bf5;
-  --fat-soft:rgba(185,139,245,0.16);
-  --fiber:#6fcf97;
-  --fiber-soft:rgba(111,207,151,0.16);
-  --water:#4fc3f7;
-  --water-soft:rgba(79,195,247,0.16);
-  --r-xl:28px;
-  --r-lg:22px;
-  --r-md:16px;
-  --r-sm:11px;
-  --shadow-lift:0 20px 45px -20px rgba(0,0,0,0.6);
-}
+  h1,h2,h3,p{margin:0;}
+  button{font-family:inherit;}
 
-*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
-html,body{height:100%;}
-body{
-  margin:0;
-  min-height:100vh;
-  background:
-    radial-gradient(60% 40% at 20% 0%, rgba(242,169,59,0.10), transparent 60%),
-    radial-gradient(55% 35% at 100% 15%, rgba(239,91,114,0.09), transparent 60%),
-    radial-gradient(50% 40% at 50% 100%, rgba(79,195,247,0.08), transparent 60%),
-    linear-gradient(180deg, var(--bg-1), var(--bg-0) 60%);
-  color:var(--text);
-  font-family:'Vazirmatn', sans-serif;
-  overflow-x:hidden;
-}
-::selection{background:var(--carb-soft); color:var(--text);}
-:focus-visible{outline:2px solid var(--fiber); outline-offset:3px; border-radius:8px;}
-button{font-family:inherit; cursor:pointer; border:none; background:none; color:inherit;}
-input{font-family:inherit; color:inherit;}
-.num{font-family:'Space Grotesk', sans-serif;}
+  /* ---------- Loading ---------- */
+  #view-loading{align-items:center;justify-content:center;gap:22px;text-align:center;}
+  .logo-mark{
+    width:84px;height:84px;border-radius:24px;
+    background:linear-gradient(145deg,var(--ember),var(--ember-2));
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 10px 40px -10px rgba(255,122,51,0.6);
+    animation:pulseLogo 1.6s ease-in-out infinite;
+  }
+  @keyframes pulseLogo{0%,100%{transform:scale(1);}50%{transform:scale(1.06);}}
+  .logo-mark svg{width:44px;height:44px;}
+  .loading-title{font-size:22px;font-weight:800;letter-spacing:-.3px;}
+  .loading-sub{color:var(--text-dim);font-size:14px;max-width:260px;}
+  .spinner-track{width:160px;height:4px;border-radius:4px;background:var(--bg-elev-2);overflow:hidden;}
+  .spinner-fill{height:100%;width:40%;border-radius:4px;background:linear-gradient(90deg,var(--ember),var(--ember-2));animation:slide 1.1s ease-in-out infinite;}
+  @keyframes slide{0%{transform:translateX(-100%);}100%{transform:translateX(350%);}}
 
-.orb{position:fixed; border-radius:50%; filter:blur(70px); opacity:0.55; z-index:0; pointer-events:none;}
-.orb-1{width:280px;height:280px; background:var(--carb); top:-80px; right:-60px; animation:float-a 16s ease-in-out infinite;}
-.orb-2{width:240px;height:240px; background:var(--protein); bottom:10%; left:-80px; animation:float-b 19s ease-in-out infinite;}
-.orb-3{width:220px;height:220px; background:var(--water); bottom:-100px; right:10%; animation:float-a 21s ease-in-out infinite reverse;}
-@keyframes float-a{0%,100%{transform:translate(0,0);}50%{transform:translate(-18px,22px);}}
-@keyframes float-b{0%,100%{transform:translate(0,0);}50%{transform:translate(20px,-16px);}}
+  /* ---------- Onboarding ---------- */
+  .ob-progress{display:flex;gap:6px;margin-bottom:30px;}
+  .ob-dot{height:4px;flex:1;border-radius:4px;background:var(--bg-elev-2);}
+  .ob-dot.done{background:linear-gradient(90deg,var(--ember),var(--ember-2));}
+  .ob-body{flex:1;display:flex;flex-direction:column;justify-content:center;gap:18px;}
+  .ob-eyebrow{color:var(--ember-2);font-size:13px;font-weight:700;}
+  .ob-title{font-size:26px;font-weight:800;line-height:1.5;letter-spacing:-.4px;}
+  .ob-hint{color:var(--text-dim);font-size:14.5px;line-height:1.9;}
+  .field{
+    margin-top:6px;
+    width:100%;
+    padding:16px 18px;
+    border-radius:var(--radius-md);
+    border:1.5px solid var(--line-strong);
+    background:var(--bg-elev);
+    color:var(--text);
+    font-size:17px;
+    outline:none;
+    transition:border-color .2s;
+  }
+  .field:focus{border-color:var(--ember);}
+  .field::placeholder{color:var(--text-faint);}
+  .btn{
+    border:none;cursor:pointer;
+    border-radius:var(--radius-md);
+    padding:17px 20px;
+    font-size:16px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    transition:transform .12s ease, opacity .2s;
+  }
+  .btn:active{transform:scale(.97);}
+  .btn-primary{
+    background:linear-gradient(135deg,var(--ember),var(--ember-2));
+    color:#1a0d00;
+    box-shadow:0 10px 30px -10px rgba(255,122,51,0.55);
+  }
+  .btn-primary:disabled{opacity:.4;box-shadow:none;pointer-events:none;}
+  .btn-ghost{
+    background:var(--bg-elev);
+    color:var(--text);
+    border:1.5px solid var(--line-strong);
+  }
+  .btn-flat{
+    background:transparent;color:var(--text-dim);
+    font-weight:600;font-size:14px;padding:10px;
+  }
+  .ob-foot{padding-top:18px;}
 
-.app{position:relative; z-index:1; max-width:440px; margin:0 auto; min-height:100vh; padding:14px 16px 110px;}
+  /* ---------- Home ---------- */
+  .home-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;}
+  .home-greet{display:flex;flex-direction:column;gap:3px;}
+  .home-greet .who{font-size:20px;font-weight:800;}
+  .home-greet .sub{font-size:13px;color:var(--text-dim);}
+  .tier-badge{
+    display:flex;align-items:center;gap:6px;
+    background:var(--bg-elev);border:1px solid var(--line-strong);
+    padding:8px 12px;border-radius:999px;font-size:13px;font-weight:700;
+  }
+  .streak-chip{
+    display:flex;align-items:center;gap:6px;
+    background:linear-gradient(135deg,rgba(255,122,51,.18),rgba(255,182,72,.10));
+    border:1px solid rgba(255,122,51,.35);
+    padding:14px 16px;border-radius:var(--radius-md);
+    margin-bottom:16px;
+  }
+  .streak-num{font-size:22px;font-weight:800;color:var(--ember-2);}
+  .streak-label{font-size:13px;color:var(--text-dim);}
 
-.topbar{display:flex; align-items:center; justify-content:space-between; padding:10px 2px 18px;}
-.topbar .nav-btn{width:36px;height:36px; border-radius:50%; background:var(--surface); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:16px; color:var(--text-dim); transition:transform .15s ease, background .2s ease, color .2s ease;}
-.topbar .nav-btn:active{transform:scale(0.88);}
-.topbar .nav-btn:hover{background:var(--surface-2); color:var(--text);}
-.date-block{text-align:center;}
-.date-block .day-name{font-size:13px; color:var(--text-dim); font-weight:500;}
-.date-block .day-full{font-size:15px; font-weight:700; margin-top:1px;}
-.settings-btn{width:36px;height:36px; border-radius:50%; background:var(--surface); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:16px; transition:transform .4s ease, background .2s ease;}
-.settings-btn:hover{background:var(--surface-2); transform:rotate(45deg);}
+  .hero-card{
+    background:var(--bg-elev);
+    border:1px solid var(--line);
+    border-radius:var(--radius-lg);
+    padding:26px 22px;
+    text-align:center;
+    margin-bottom:16px;
+    position:relative;
+    overflow:hidden;
+  }
+  .hero-card::before{
+    content:"";position:absolute;inset:0;
+    background:radial-gradient(220px 140px at 50% 0%, rgba(255,122,51,0.14), transparent 70%);
+  }
+  .hero-num{font-size:56px;font-weight:800;letter-spacing:-2px;line-height:1;position:relative;}
+  .hero-label{color:var(--text-dim);font-size:14px;margin-top:8px;position:relative;}
 
-.card{
-  background:linear-gradient(165deg, var(--surface), rgba(255,255,255,0.015));
-  border:1px solid var(--border);
-  border-radius:var(--r-xl);
-  backdrop-filter:blur(18px);
-  box-shadow:var(--shadow-lift);
-  padding:20px;
-  margin-bottom:16px;
-  opacity:0;
-  transform:translateY(16px) rotateX(4deg);
-  animation:card-in .7s cubic-bezier(.2,.8,.2,1) forwards;
-}
-.card:nth-of-type(1){animation-delay:.02s;}
-.card:nth-of-type(2){animation-delay:.10s;}
-.card:nth-of-type(3){animation-delay:.18s;}
-.card:nth-of-type(4){animation-delay:.26s;}
-@keyframes card-in{to{opacity:1; transform:translateY(0) rotateX(0);}}
+  .stat-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px;}
+  .stat-box{
+    background:var(--bg-elev);border:1px solid var(--line);
+    border-radius:var(--radius-md);padding:14px 8px;text-align:center;
+  }
+  .stat-box .v{font-size:20px;font-weight:800;}
+  .stat-box .l{font-size:11.5px;color:var(--text-dim);margin-top:4px;}
 
-/* ---------- HERO / ENERGY CORE ---------- */
-.hero-card{padding:26px 16px 22px; perspective:900px;}
-.ring-stage{width:230px; height:230px; margin:0 auto; position:relative; transform-style:preserve-3d; transition:transform .25s ease-out;}
-.orbit{position:absolute; top:50%; left:50%; border-radius:50%; animation:spin linear infinite; pointer-events:none;}
-@keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg);}}
-.orbit-track{transform:translate(-50%,-50%);}
-.particle{position:absolute; top:0; left:50%; transform:translate(-50%,-50%); width:9px; height:9px; border-radius:50%;}
-.orbit-carb{width:250px;height:250px;} .particle-carb{background:var(--carb); box-shadow:0 0 10px 2px var(--carb);}
-.orbit-protein{width:276px;height:276px;} .particle-protein{background:var(--protein); box-shadow:0 0 10px 2px var(--protein);}
-.orbit-fat{width:302px;height:302px;} .particle-fat{background:var(--fat); box-shadow:0 0 10px 2px var(--fat);}
-.orbit-fiber{width:328px;height:328px;} .particle-fiber{background:var(--fiber); box-shadow:0 0 10px 2px var(--fiber);}
+  .cta-main{margin-bottom:12px;}
+  .secondary-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 
-.main-ring{position:absolute; inset:0; margin:auto; width:210px; height:210px; transform:rotate(-90deg);}
-.ring-bg{fill:none; stroke:rgba(255,255,255,0.06); stroke-width:13;}
-.ring-fg{fill:none; stroke:url(#ringGrad); stroke-width:13; stroke-linecap:round; transition:stroke-dashoffset 1s cubic-bezier(.2,.8,.2,1); filter:drop-shadow(0 0 8px rgba(242,169,59,0.55));}
+  /* ---------- Bottom nav ---------- */
+  .bottom-nav{
+    display:flex;
+    border-top:1px solid var(--line);
+    background:rgba(10,14,19,0.9);
+    backdrop-filter:blur(10px);
+    padding:10px 8px calc(10px + var(--safe-bottom));
+  }
+  .nav-btn{
+    flex:1;background:none;border:none;color:var(--text-faint);
+    display:flex;flex-direction:column;align-items:center;gap:4px;
+    font-size:11px;font-weight:700;cursor:pointer;padding:6px;border-radius:12px;
+  }
+  .nav-btn.active{color:var(--ember-2);}
+  .nav-btn svg{width:22px;height:22px;}
 
-.ring-center{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:2px;}
-.kcal-value{font-family:'Space Grotesk',sans-serif; font-size:44px; font-weight:700; letter-spacing:-1px; line-height:1;}
-.kcal-goal{font-size:12.5px; color:var(--text-dim); margin-top:2px;}
-.kcal-remaining{font-size:12px; color:var(--fiber); font-weight:600; margin-top:6px; background:var(--fiber-soft); padding:4px 12px; border-radius:20px;}
-.kcal-remaining.over{color:var(--protein); background:var(--protein-soft);}
+  /* ---------- Workout ---------- */
+  #view-workout{padding:0;position:relative;background:#000;}
+  .cam-stage{
+    position:relative;width:100%;flex:1;overflow:hidden;background:#000;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .cam-flip{transform:scaleX(-1);width:100%;height:100%;position:relative;}
+  #video{width:100%;height:100%;object-fit:cover;display:block;}
+  #overlay{position:absolute;inset:0;width:100%;height:100%;}
+  .cam-topbar{
+    position:absolute;top:0;left:0;right:0;
+    padding:calc(14px + var(--safe-top)) 16px 40px;
+    display:flex;align-items:center;justify-content:space-between;
+    background:linear-gradient(180deg,rgba(0,0,0,.75),transparent);
+    z-index:5;
+  }
+  .icon-btn{
+    width:40px;height:40px;border-radius:50%;
+    background:rgba(255,255,255,0.12);border:none;color:#fff;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+  }
+  .timer-pill{
+    background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,.2);
+    color:#fff;padding:8px 16px;border-radius:999px;font-weight:700;font-size:14px;
+    font-variant-numeric:tabular-nums;
+  }
+  .rep-hud{
+    position:absolute;top:34%;left:0;right:0;
+    display:flex;flex-direction:column;align-items:center;pointer-events:none;z-index:4;
+  }
+  .rep-hud .num{
+    font-size:96px;font-weight:800;color:#fff;line-height:1;
+    text-shadow:0 4px 30px rgba(255,122,51,0.8), 0 2px 8px rgba(0,0,0,.6);
+    transition:transform .15s ease;
+  }
+  .rep-hud .num.bump{transform:scale(1.18);}
+  .rep-hud .label{color:rgba(255,255,255,0.75);font-size:13px;font-weight:700;letter-spacing:1px;margin-top:2px;}
+  .coach-banner{
+    position:absolute;bottom:150px;left:16px;right:16px;z-index:5;
+    background:rgba(10,14,19,0.72);backdrop-filter:blur(8px);
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:var(--radius-md);
+    padding:12px 16px;text-align:center;font-size:14px;font-weight:600;color:#fff;
+    transition:opacity .25s;
+  }
+  .cam-bottombar{
+    position:absolute;bottom:0;left:0;right:0;z-index:6;
+    padding:16px 16px calc(20px + var(--safe-bottom));
+    background:linear-gradient(0deg,rgba(0,0,0,.8),transparent);
+    display:flex;flex-direction:column;gap:10px;
+  }
+  .manual-adjust{display:flex;justify-content:center;gap:10px;margin-bottom:2px;}
+  .manual-btn{
+    width:38px;height:38px;border-radius:50%;border:1px solid rgba(255,255,255,.25);
+    background:rgba(255,255,255,.08);color:#fff;font-size:18px;font-weight:800;cursor:pointer;
+  }
+  .cam-controls{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .btn-pause{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.2);}
+  .btn-finish{background:linear-gradient(135deg,var(--ember),var(--ember-2));color:#1a0d00;}
 
-/* ---------- MACROS ---------- */
-.section-title{font-size:13px; font-weight:700; color:var(--text-dim); margin:0 0 14px; display:flex; align-items:center; gap:6px;}
-.macro-row{display:flex; align-items:center; gap:12px; margin-bottom:14px;}
-.macro-row:last-child{margin-bottom:0;}
-.macro-badge{width:34px;height:34px; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0;}
-.macro-body{flex:1; min-width:0;}
-.macro-top{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px;}
-.macro-name{font-size:13px; font-weight:600;}
-.macro-vals{font-size:12px; color:var(--text-dim); font-family:'Space Grotesk',sans-serif;}
-.macro-track{height:8px; border-radius:20px; background:rgba(255,255,255,0.06); overflow:hidden;}
-.macro-fill{height:100%; border-radius:20px; width:0%; transition:width 1s cubic-bezier(.2,.8,.2,1); position:relative;}
-.macro-fill::after{content:'';position:absolute; inset:0; background:linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent); width:40%; animation:shimmer 2.4s ease-in-out infinite;}
-@keyframes shimmer{0%{transform:translateX(-120%);}100%{transform:translateX(280%);}}
+  .cam-fallback{
+    position:absolute;inset:0;background:#0a0e13;z-index:8;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:30px;gap:16px;
+  }
+  .cam-fallback.hidden{display:none;}
+  .big-tap{
+    width:180px;height:180px;border-radius:50%;
+    background:linear-gradient(135deg,var(--ember),var(--ember-2));
+    border:none;color:#1a0d00;font-size:20px;font-weight:800;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+    box-shadow:0 14px 40px -12px rgba(255,122,51,.7);
+  }
+  .big-tap:active{transform:scale(.96);}
+  .big-tap .n{font-size:46px;line-height:1;}
 
-/* ---------- WATER ---------- */
-.water-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;}
-.water-count{font-family:'Space Grotesk',sans-serif; font-size:13px; color:var(--water); font-weight:600;}
-.glass-row{display:flex; gap:9px; flex-wrap:wrap; justify-content:center;}
-.glass{width:34px; height:44px; border-radius:6px 6px 10px 10px; border:1.6px solid rgba(79,195,247,0.35); position:relative; overflow:hidden; background:rgba(255,255,255,0.03); transition:transform .18s cubic-bezier(.3,1.5,.5,1); flex-shrink:0;}
-.glass:active{transform:scale(0.85) rotate(-4deg);}
-.glass .liquid{position:absolute; left:0; right:0; bottom:0; height:0%; background:linear-gradient(180deg, #7cd6fb, var(--water)); transition:height .55s cubic-bezier(.2,.8,.2,1);}
-.glass .liquid::before{content:''; position:absolute; top:-3px; left:0; right:0; height:6px; background:radial-gradient(ellipse at center, rgba(255,255,255,0.6), transparent 70%); animation:wave 1.8s ease-in-out infinite;}
-@keyframes wave{0%,100%{transform:translateX(-3px);}50%{transform:translateX(3px);}}
-.glass.filled{box-shadow:0 0 12px rgba(79,195,247,0.35);}
+  /* ---------- Summary modal ---------- */
+  .modal-backdrop{
+    position:fixed;inset:0;background:rgba(4,6,9,0.75);backdrop-filter:blur(4px);
+    display:flex;align-items:flex-end;justify-content:center;z-index:50;
+    opacity:0;pointer-events:none;transition:opacity .25s;
+  }
+  .modal-backdrop.show{opacity:1;pointer-events:auto;}
+  .modal-sheet{
+    width:100%;max-width:480px;background:var(--bg-elev);
+    border-radius:26px 26px 0 0;padding:28px 24px calc(28px + var(--safe-bottom));
+    transform:translateY(100%);transition:transform .3s ease;
+    border-top:1px solid var(--line-strong);
+    text-align:center;
+  }
+  .modal-backdrop.show .modal-sheet{transform:translateY(0);}
+  .modal-emoji{font-size:46px;margin-bottom:6px;}
+  .modal-title{font-size:22px;font-weight:800;margin-bottom:6px;}
+  .modal-sub{color:var(--text-dim);font-size:14px;margin-bottom:18px;}
+  .modal-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px;}
+  .modal-stats .box{background:var(--bg-elev-2);border-radius:var(--radius-md);padding:14px;}
+  .modal-stats .box .v{font-size:24px;font-weight:800;}
+  .modal-stats .box .l{font-size:12px;color:var(--text-dim);margin-top:2px;}
 
-/* ---------- LOG ---------- */
-.log-empty{text-align:center; padding:22px 10px; color:var(--text-faint); font-size:13px;}
-.log-empty .emoji{font-size:26px; display:block; margin-bottom:8px;}
-.log-item{display:flex; align-items:center; gap:11px; padding:10px 0; border-bottom:1px solid var(--border);}
-.log-item:last-child{border-bottom:none; padding-bottom:0;}
-.log-icon{width:38px;height:38px;border-radius:12px; background:var(--surface-2); display:flex; align-items:center; justify-content:center; font-size:17px; flex-shrink:0;}
-.log-info{flex:1; min-width:0;}
-.log-name{font-size:13.5px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-.log-macros{font-size:11px; color:var(--text-faint); margin-top:2px; font-family:'Space Grotesk',sans-serif;}
-.log-kcal{font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:700; color:var(--carb); flex-shrink:0;}
-.log-del{width:26px;height:26px;border-radius:50%; color:var(--text-faint); font-size:14px; flex-shrink:0; transition:background .2s, color .2s;}
-.log-del:hover{background:var(--protein-soft); color:var(--protein);}
+  /* ---------- Leaderboard ---------- */
+  .lb-title{font-size:24px;font-weight:800;margin-bottom:4px;}
+  .lb-sub{color:var(--text-dim);font-size:13.5px;margin-bottom:18px;}
+  .lb-list{display:flex;flex-direction:column;gap:8px;overflow-y:auto;flex:1;padding-bottom:10px;}
+  .lb-row{
+    display:flex;align-items:center;gap:12px;
+    background:var(--bg-elev);border:1px solid var(--line);
+    border-radius:var(--radius-md);padding:12px 14px;
+  }
+  .lb-row.me{border-color:var(--ember);background:linear-gradient(135deg,rgba(255,122,51,.14),rgba(255,122,51,.04));}
+  .lb-rank{width:28px;text-align:center;font-weight:800;color:var(--text-dim);font-size:14px;}
+  .lb-row:nth-child(1) .lb-rank{color:#ffd700;font-size:18px;}
+  .lb-row:nth-child(2) .lb-rank{color:#c9d3dc;font-size:17px;}
+  .lb-row:nth-child(3) .lb-rank{color:#d69456;font-size:17px;}
+  .lb-name{flex:1;min-width:0;}
+  .lb-name .n{font-weight:700;font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .lb-name .s{font-size:11.5px;color:var(--text-dim);}
+  .lb-total{font-weight:800;font-size:16px;}
+  .lb-total .u{font-size:11px;color:var(--text-dim);font-weight:500;margin-right:3px;}
+  .lb-empty{text-align:center;color:var(--text-dim);padding:60px 20px;font-size:14px;line-height:2;}
 
-/* ---------- FAB ---------- */
-.fab{position:fixed; bottom:26px; left:50%; transform:translateX(-50%); width:60px; height:60px; border-radius:50%; background:linear-gradient(145deg, var(--carb), var(--protein)); box-shadow:0 10px 30px -6px rgba(239,91,114,0.55), 0 0 0 6px rgba(255,255,255,0.03); display:flex; align-items:center; justify-content:center; font-size:28px; color:#1a0f08; z-index:20; transition:transform .18s cubic-bezier(.3,1.6,.4,1);}
-.fab:active{transform:translateX(-50%) scale(0.88) rotate(90deg);}
+  .center-msg{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;color:var(--text-dim);}
 
-/* ---------- MODAL ---------- */
-.overlay{position:fixed; inset:0; background:rgba(4,8,7,0.65); backdrop-filter:blur(4px); z-index:50; display:flex; align-items:flex-end; justify-content:center; opacity:0; pointer-events:none; transition:opacity .25s ease;}
-.overlay.open{opacity:1; pointer-events:auto;}
-.sheet{width:100%; max-width:440px; max-height:86vh; overflow-y:auto; background:linear-gradient(180deg, var(--bg-1), var(--bg-0)); border:1px solid var(--border); border-bottom:none; border-radius:26px 26px 0 0; padding:18px 18px 26px; transform:translateY(100%); transition:transform .35s cubic-bezier(.2,.85,.25,1); box-shadow:0 -20px 60px -20px rgba(0,0,0,0.7);}
-.overlay.open .sheet{transform:translateY(0);}
-.sheet-handle{width:38px;height:4px; background:var(--border); border-radius:4px; margin:0 auto 14px;}
-.sheet-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;}
-.sheet-title{font-size:16px; font-weight:800;}
-.sheet-close{width:30px;height:30px; border-radius:50%; background:var(--surface); display:flex; align-items:center; justify-content:center; color:var(--text-dim);}
+  /* Profile view */
+  .profile-avatar{
+    width:74px;height:74px;border-radius:50%;
+    background:linear-gradient(135deg,var(--ember),var(--ember-2));
+    display:flex;align-items:center;justify-content:center;
+    font-size:28px;font-weight:800;color:#1a0d00;margin:0 auto 12px;
+  }
+  .settings-list{display:flex;flex-direction:column;gap:10px;margin-top:20px;}
+  .settings-item{
+    background:var(--bg-elev);border:1px solid var(--line);border-radius:var(--radius-md);
+    padding:15px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;
+  }
+  .settings-item .t{font-size:14.5px;font-weight:600;}
+  .settings-item.danger .t{color:var(--bad);}
 
-.tabs{display:flex; gap:6px; background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:4px; margin-bottom:16px;}
-.tab-btn{flex:1; padding:9px 4px; border-radius:11px; font-size:12.5px; font-weight:700; color:var(--text-dim); transition:background .2s, color .2s;}
-.tab-btn.active{background:var(--surface-2); color:var(--text);}
-.tab-panel{display:none;}
-.tab-panel.active{display:block; animation:fade-up .35s ease;}
-@keyframes fade-up{from{opacity:0; transform:translateY(6px);}to{opacity:1; transform:translateY(0);}}
-
-.search-row{display:flex; gap:8px; margin-bottom:12px;}
-.search-input{flex:1; background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:12px 14px; font-size:13.5px;}
-.search-input::placeholder{color:var(--text-faint);}
-.search-go{width:46px; border-radius:14px; background:var(--surface-2); font-size:16px; display:flex; align-items:center; justify-content:center;}
-.hint{font-size:11.5px; color:var(--text-faint); margin-bottom:10px; line-height:1.6;}
-.result-list{display:flex; flex-direction:column; gap:8px; max-height:260px; overflow-y:auto;}
-.result-item{display:flex; align-items:center; gap:10px; padding:10px; border-radius:14px; background:var(--surface); border:1px solid transparent; transition:background .2s, border-color .2s; text-align:right;}
-.result-item:hover{background:var(--surface-2); border-color:var(--border);}
-.result-thumb{width:36px;height:36px;border-radius:10px; background:var(--surface-2); object-fit:cover; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:16px;}
-.result-name{font-size:13px; font-weight:600; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-.result-kcal{font-size:11px; color:var(--text-dim); font-family:'Space Grotesk',sans-serif; flex-shrink:0;}
-.state-msg{text-align:center; font-size:12.5px; color:var(--text-faint); padding:16px;}
-
-.chip-row{display:flex; gap:7px; overflow-x:auto; padding-bottom:10px; margin-bottom:6px;}
-.chip{flex-shrink:0; padding:7px 14px; border-radius:20px; background:var(--surface); border:1px solid var(--border); font-size:12px; font-weight:600; color:var(--text-dim); transition:background .2s, color .2s;}
-.chip.active{background:var(--fiber); color:#08140e; border-color:var(--fiber);}
-.quick-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
-.quick-card{display:flex; align-items:center; gap:9px; padding:10px; border-radius:14px; background:var(--surface); border:1px solid var(--border); text-align:right; transition:transform .15s, background .2s;}
-.quick-card:active{transform:scale(0.96);}
-.quick-card{position:relative;overflow:hidden;}
-.quick-card .qphoto{width:44px;height:44px;border-radius:12px;object-fit:cover;flex-shrink:0;background:var(--surface-2);}
-.quick-card .qbody{flex:1;min-width:0;}
-.quick-card .qportion{font-size:10.5px;color:var(--fiber);margin-top:3px;}
-.quick-card .qimg-link{position:absolute;top:7px;left:7px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;font-size:12px;text-decoration:none;z-index:2;}
-.quick-card .qimg-link:hover{background:rgba(0,0,0,.65);}
-.portion-box{margin-top:12px;}
-.portion-title{font-size:11.5px;color:var(--text-dim);margin-bottom:7px;font-weight:700;}
-.portion-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
-.portion-btn{padding:9px 7px;border-radius:12px;background:var(--surface);border:1px solid var(--border);font-size:11.5px;color:var(--text-dim);}
-.portion-btn.active{background:var(--fiber-soft);border-color:var(--fiber);color:var(--fiber);font-weight:800;}
-.custom-amount{display:flex;gap:7px;align-items:center;margin-top:8px;}
-.custom-amount input{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px;text-align:center;font-family:'Space Grotesk',sans-serif;}
-.custom-amount span{font-size:11px;color:var(--text-faint);}
-
-.quick-card .qi{font-size:19px;}
-.quick-card .qn{font-size:12px; font-weight:700; line-height:1.3;}
-.quick-card .qk{font-size:10.5px; color:var(--text-faint); font-family:'Space Grotesk',sans-serif;}
-
-.field{margin-bottom:12px;}
-.field label{display:block; font-size:12px; color:var(--text-dim); margin-bottom:6px; font-weight:600;}
-.field input, .field select{width:100%; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:11px 13px; font-size:13.5px; color:var(--text); font-family:'Vazirmatn', sans-serif; appearance:none;}
-.field select{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2393a89f' stroke-width='2'><path d='M6 9l6 6 6-6'/></svg>"); background-repeat:no-repeat; background-position:left 12px center; background-size:14px;}
-.field-row{display:flex; gap:10px;}
-.field-row .field{flex:1;}
-
-.qty-card{background:var(--surface); border:1px solid var(--border); border-radius:18px; padding:16px; margin-bottom:14px;}
-.qty-food{display:flex; align-items:center; gap:10px; margin-bottom:14px;}
-.qty-icon{width:42px;height:42px;border-radius:13px; background:var(--surface-2); display:flex; align-items:center; justify-content:center; font-size:20px;}
-.qty-name{font-size:14px; font-weight:800;}
-.qty-sub{font-size:11px; color:var(--text-faint);}
-.grams-input{display:flex; align-items:center; gap:10px; background:var(--surface-2); border-radius:14px; padding:6px;}
-.grams-input button{width:34px;height:34px; border-radius:10px; background:rgba(255,255,255,0.06); font-size:17px; font-weight:700;}
-.grams-input input{flex:1; text-align:center; background:transparent; border:none; font-size:16px; font-weight:700; font-family:'Space Grotesk',sans-serif;}
-.preview-row{display:flex; justify-content:space-between; margin-top:14px; padding-top:14px; border-top:1px solid var(--border);}
-.preview-item{text-align:center; flex:1;}
-.preview-item .pv{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:14px;}
-.preview-item .pl{font-size:10px; color:var(--text-faint); margin-top:2px;}
-
-.btn-primary{width:100%; padding:14px; border-radius:16px; background:linear-gradient(120deg, var(--carb), var(--protein)); color:#1a0f08; font-weight:800; font-size:14px; transition:transform .15s;}
-.btn-primary:active{transform:scale(0.97);}
-.btn-ghost{width:100%; padding:12px; border-radius:16px; background:var(--surface); border:1px solid var(--border); color:var(--text-dim); font-weight:700; font-size:13px; margin-top:10px;}
-
-/* ---------- TOAST / BURST ---------- */
-.toast-layer{position:fixed; inset:0; pointer-events:none; z-index:80;}
-.toast{position:absolute; left:50%; top:32%; transform:translateX(-50%); font-family:'Space Grotesk',sans-serif; font-weight:800; font-size:20px; color:var(--fiber); text-shadow:0 0 14px rgba(111,207,151,0.6); animation:toast-up 1.3s ease-out forwards;}
-@keyframes toast-up{0%{opacity:0; transform:translate(-50%,10px) scale(0.8);}15%{opacity:1; transform:translate(-50%,0) scale(1.08);}75%{opacity:1;}100%{opacity:0; transform:translate(-50%,-46px) scale(1);}}
-.burst-dot{position:absolute; left:50%; top:32%; width:6px; height:6px; border-radius:50%; animation:burst .8s cubic-bezier(.2,.8,.3,1) forwards;}
-@keyframes burst{to{transform:translate(calc(-50% + var(--tx)), calc(var(--ty))); opacity:0;}}
-
-@media (max-width:380px){
-  .kcal-value{font-size:38px;}
-  .ring-stage{width:210px;height:210px;}
-}
-@media (prefers-reduced-motion: reduce){
-  *{animation:none !important; transition:none !important;}
-}
+  ::-webkit-scrollbar{width:0;height:0;}
 </style>
 </head>
 <body>
+<div id="app">
 
-<div class="orb orb-1"></div>
-<div class="orb orb-2"></div>
-<div class="orb orb-3"></div>
-
-<div class="app">
-  <div class="topbar">
-    <button class="nav-btn" id="prevDay" title="روز قبل">›</button>
-    <div class="date-block">
-      <div class="day-name" id="dayName">امروز</div>
-      <div class="day-full" id="dayFull">—</div>
+  <!-- LOADING -->
+  <div class="view active" id="view-loading">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M4 8v8M20 8v8M7 12h10M2 10v4M22 10v4" stroke="#1a0d00" stroke-width="2.4" stroke-linecap="round"/></svg>
     </div>
-    <div style="display:flex; gap:8px;">
-      <button class="nav-btn" id="nextDay" title="روز بعد">‹</button>
-      <button class="settings-btn" id="openSettings" title="تنظیمات">⚙</button>
+    <div class="loading-title">بارفیکساتو</div>
+    <div class="loading-sub">در حال آماده‌سازی اپ...</div>
+    <div class="spinner-track"><div class="spinner-fill"></div></div>
+  </div>
+
+  <!-- ONBOARDING: NAME -->
+  <div class="view" id="view-ob-name">
+    <div class="ob-progress"><div class="ob-dot done"></div><div class="ob-dot"></div></div>
+    <div class="ob-body">
+      <div class="ob-eyebrow">خوش اومدی</div>
+      <div class="ob-title">اسمت چیه؟</div>
+      <p class="ob-hint">این اسم فقط برای خودت ذخیره می‌شه.</p>
+      <input class="field" id="input-name" type="text" placeholder="مثلاً علی" maxlength="30" autocomplete="off">
+    </div>
+    <div class="ob-foot">
+      <button class="btn btn-primary" style="width:100%" id="btn-name-next" disabled>ادامه</button>
     </div>
   </div>
 
-  <div class="card hero-card">
-    <div class="ring-stage" id="ringStage">
-      <div class="orbit orbit-carb" id="orbitCarb"><span class="particle particle-carb"></span></div>
-      <div class="orbit orbit-protein" id="orbitProtein"><span class="particle particle-protein"></span></div>
-      <div class="orbit orbit-fat" id="orbitFat"><span class="particle particle-fat"></span></div>
-      <div class="orbit orbit-fiber" id="orbitFiber"><span class="particle particle-fiber"></span></div>
+  <!-- ONBOARDING: NICKNAME -->
+  <div class="view" id="view-ob-nick">
+    <div class="ob-progress"><div class="ob-dot done"></div><div class="ob-dot done"></div></div>
+    <div class="ob-body">
+      <div class="ob-eyebrow">یه قدم مونده</div>
+      <div class="ob-title">یه لقب باحال انتخاب کن</div>
+      <p class="ob-hint">این لقب توی رنکینگ به بقیه نشون داده می‌شه.</p>
+      <input class="field" id="input-nick" type="text" placeholder="مثلاً هیولای بارفیکس" maxlength="24" autocomplete="off">
+    </div>
+    <div class="ob-foot">
+      <button class="btn btn-primary" style="width:100%" id="btn-nick-next" disabled>بزن بریم 💪</button>
+    </div>
+  </div>
 
-      <svg class="main-ring" viewBox="0 0 220 220">
-        <defs>
-          <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#f2a93b"/>
-            <stop offset="100%" stop-color="#ef5b72"/>
-          </linearGradient>
-        </defs>
-        <circle class="ring-bg" cx="110" cy="110" r="90"/>
-        <circle class="ring-fg" id="ringFg" cx="110" cy="110" r="90"/>
-      </svg>
-      <div class="ring-center">
-        <div class="kcal-value num" id="kcalValue">0</div>
-        <div class="kcal-goal">از <span class="num" id="kcalGoalLabel">2200</span> کالری</div>
-        <div class="kcal-remaining num" id="kcalRemaining">2200 باقی‌مانده</div>
+  <!-- HOME -->
+  <div class="view" id="view-home">
+    <div class="home-header">
+      <div class="home-greet">
+        <div class="who" id="home-who">سلام 👋</div>
+        <div class="sub" id="home-date"></div>
+      </div>
+      <div class="tier-badge" id="home-tier">🔥 تازه‌کار</div>
+    </div>
+
+    <div class="streak-chip">
+      <div style="font-size:26px">🔥</div>
+      <div style="flex:1">
+        <div class="streak-num"><span id="home-streak">0</span> روز</div>
+        <div class="streak-label">استریک فعلی</div>
+      </div>
+      <div style="text-align:left">
+        <div style="font-size:13px;color:var(--text-dim)">رکورد استریک</div>
+        <div style="font-weight:800" id="home-best-streak">0</div>
+      </div>
+    </div>
+
+    <div class="hero-card">
+      <div class="hero-num" id="home-total">0</div>
+      <div class="hero-label">مجموع بارفیکس‌های ثبت‌شده</div>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat-box"><div class="v" id="home-today">0</div><div class="l">امروز</div></div>
+      <div class="stat-box"><div class="v" id="home-days">1</div><div class="l">روز حضور</div></div>
+      <div class="stat-box"><div class="v" id="home-rank">—</div><div class="l">رتبه</div></div>
+    </div>
+
+    <button class="btn btn-primary cta-main" id="btn-start-workout">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 8v8M20 8v8M7 12h10M2 10v4M22 10v4" stroke="#1a0d00" stroke-width="2.4" stroke-linecap="round"/></svg>
+      شروع تمرین بارفیکس
+    </button>
+    <div class="secondary-row">
+      <button class="btn btn-ghost" id="btn-manual-add">افزودن دستی</button>
+      <button class="btn btn-ghost" id="btn-goto-leaderboard">رنکینگ 🏆</button>
+    </div>
+  </div>
+
+  <!-- WORKOUT -->
+  <div class="view" id="view-workout">
+    <div class="cam-stage">
+      <div class="cam-flip">
+        <video id="video" playsinline muted autoplay></video>
+        <canvas id="overlay"></canvas>
+      </div>
+      <div class="cam-topbar">
+        <button class="icon-btn" id="btn-exit-workout">✕</button>
+        <div class="timer-pill" id="workout-timer">00:00</div>
+      </div>
+      <div class="rep-hud">
+        <div class="num" id="rep-count">0</div>
+        <div class="label">بارفیکس</div>
+      </div>
+      <div class="coach-banner" id="coach-banner">دوربین رو طوری بگیر که کل بدنت دیده بشه</div>
+      <div class="cam-bottombar">
+        <div class="manual-adjust">
+          <button class="manual-btn" id="btn-rep-minus">−</button>
+          <span style="color:rgba(255,255,255,.6);font-size:12px;align-self:center">اصلاح دستی</span>
+          <button class="manual-btn" id="btn-rep-plus">+</button>
+        </div>
+        <div class="cam-controls">
+          <button class="btn btn-pause" id="btn-pause-workout">مکث</button>
+          <button class="btn btn-finish" id="btn-finish-workout">پایان تمرین</button>
+        </div>
+      </div>
+      <div class="cam-fallback hidden" id="cam-fallback">
+        <div style="font-size:40px">🤳</div>
+        <h3 style="font-size:17px;font-weight:800" id="fallback-title">دوربین در دسترس نیست</h3>
+        <p style="color:var(--text-dim);font-size:13.5px;line-height:1.9" id="fallback-text">می‌تونی از حالت شمارش دستی استفاده کنی. هر بار که یک بارفیکس زدی، دکمه رو بزن.</p>
+        <button class="big-tap" id="btn-manual-tap">
+          <div class="n" id="manual-tap-count">0</div>
+          <div>بزن!</div>
+        </button>
+        <button class="btn btn-finish" style="margin-top:10px;width:220px" id="btn-finish-manual">پایان تمرین</button>
       </div>
     </div>
   </div>
 
-  <div class="card macros-card">
-    <div class="section-title">🧬 درشت‌مغذی‌ها</div>
-    <div class="macro-row">
-      <div class="macro-badge" style="background:var(--carb-soft); color:var(--carb);">🌾</div>
-      <div class="macro-body">
-        <div class="macro-top"><span class="macro-name">کربوهیدرات</span><span class="macro-vals num" id="carbVals">0 / 275 گرم</span></div>
-        <div class="macro-track"><div class="macro-fill" id="carbFill" style="background:var(--carb);"></div></div>
-      </div>
-    </div>
-    <div class="macro-row">
-      <div class="macro-badge" style="background:var(--protein-soft); color:var(--protein);">🍗</div>
-      <div class="macro-body">
-        <div class="macro-top"><span class="macro-name">پروتئین</span><span class="macro-vals num" id="proteinVals">0 / 90 گرم</span></div>
-        <div class="macro-track"><div class="macro-fill" id="proteinFill" style="background:var(--protein);"></div></div>
-      </div>
-    </div>
-    <div class="macro-row">
-      <div class="macro-badge" style="background:var(--fat-soft); color:var(--fat);">🥑</div>
-      <div class="macro-body">
-        <div class="macro-top"><span class="macro-name">چربی</span><span class="macro-vals num" id="fatVals">0 / 70 گرم</span></div>
-        <div class="macro-track"><div class="macro-fill" id="fatFill" style="background:var(--fat);"></div></div>
-      </div>
-    </div>
-    <div class="macro-row">
-      <div class="macro-badge" style="background:var(--fiber-soft); color:var(--fiber);">🥦</div>
-      <div class="macro-body">
-        <div class="macro-top"><span class="macro-name">فیبر</span><span class="macro-vals num" id="fiberVals">0 / 30 گرم</span></div>
-        <div class="macro-track"><div class="macro-fill" id="fiberFill" style="background:var(--fiber);"></div></div>
-      </div>
+  <!-- LEADERBOARD -->
+  <div class="view" id="view-leaderboard">
+    <div class="lb-title">رنکینگ 🏆</div>
+    <div class="lb-sub">بر اساس مجموع بارفیکس‌ها</div>
+    <div class="lb-list" id="lb-list">
+      <div class="center-msg">در حال بارگذاری...</div>
     </div>
   </div>
 
-  <div class="card water-card">
-    <div class="water-head">
-      <div class="section-title" style="margin:0;">💧 آب</div>
-      <div class="water-count num" id="waterCount">0 / 8 لیوان</div>
+  <!-- PROFILE -->
+  <div class="view" id="view-profile">
+    <div class="profile-avatar" id="profile-avatar">A</div>
+    <div style="text-align:center;font-size:19px;font-weight:800" id="profile-name">—</div>
+    <div style="text-align:center;color:var(--text-dim);font-size:13px;margin-top:2px" id="profile-nick">—</div>
+
+    <div class="stat-row" style="margin-top:22px">
+      <div class="stat-box"><div class="v" id="profile-total">0</div><div class="l">مجموع</div></div>
+      <div class="stat-box"><div class="v" id="profile-streak">0</div><div class="l">استریک</div></div>
+      <div class="stat-box"><div class="v" id="profile-days">0</div><div class="l">روز حضور</div></div>
     </div>
-    <div class="glass-row" id="glassRow"></div>
+
+    <div class="settings-list">
+      <div class="settings-item" id="btn-edit-nick"><div class="t">ویرایش لقب</div><div>›</div></div>
+      <div class="settings-item danger" id="btn-reset-data"><div class="t">حذف اطلاعات و شروع دوباره</div><div>›</div></div>
+    </div>
   </div>
 
-  <div class="card log-card">
-    <div class="section-title">📋 غذاهای امروز</div>
-    <div id="logList"></div>
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav" id="bottom-nav" style="display:none">
+    <button class="nav-btn active" data-nav="view-home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7"/><path d="M5 10v9a1 1 0 001 1h4v-6h4v6h4a1 1 0 001-1v-9"/></svg>
+      خانه
+    </button>
+    <button class="nav-btn" data-nav="view-leaderboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0V4z"/><path d="M7 6H4a1 1 0 00-1 1c0 3 2 4 4 4M17 6h3a1 1 0 011 1c0 3-2 4-4 4"/></svg>
+      رنکینگ
+    </button>
+    <button class="nav-btn" data-nav="view-profile">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
+      پروفایل
+    </button>
   </div>
+
+  <!-- SUMMARY MODAL -->
+  <div class="modal-backdrop" id="modal-summary">
+    <div class="modal-sheet">
+      <div class="modal-emoji" id="summary-emoji">💪</div>
+      <div class="modal-title" id="summary-title">آفرین!</div>
+      <div class="modal-sub" id="summary-sub">تمرین با موفقیت ثبت شد</div>
+      <div class="modal-stats">
+        <div class="box"><div class="v" id="summary-reps">0</div><div class="l">بارفیکس این تمرین</div></div>
+        <div class="box"><div class="v" id="summary-total">0</div><div class="l">مجموع کل</div></div>
+      </div>
+      <button class="btn btn-primary" style="width:100%" id="btn-summary-close">برگشت به خانه</button>
+    </div>
+  </div>
+
 </div>
 
-<button class="fab" id="fabAdd" title="افزودن غذا">+</button>
-
-<!-- ADD FOOD SHEET -->
-<div class="overlay" id="addOverlay">
-  <div class="sheet">
-    <div class="sheet-handle"></div>
-    <div class="sheet-head">
-      <div class="sheet-title">افزودن غذا</div>
-      <button class="sheet-close" id="closeAdd">✕</button>
-    </div>
-
-    <div class="tabs">
-      <button class="tab-btn active" data-tab="quick">افزودن سریع</button>
-      <button class="tab-btn" data-tab="search">جستجو</button>
-      <button class="tab-btn" data-tab="manual">دستی</button>
-    </div>
-
-    <div class="tab-panel active" id="panel-quick">
-      <div class="chip-row" id="chipRow"></div>
-      <div class="quick-grid" id="quickGrid"></div>
-    </div>
-
-    <div class="tab-panel" id="panel-search">
-      <div class="search-row">
-        <input class="search-input" id="searchInput" placeholder="مثلاً: پنیر، نوتلا، ماست...">
-        <button class="search-go" id="searchGo">🔍</button>
-      </div>
-      <div class="hint">نتایج از پایگاه‌داده جهانی محصولات غذایی می‌آید؛ برای غذاهای خانگی «افزودن سریع» دقیق‌تره.</div>
-      <div class="result-list" id="resultList"></div>
-    </div>
-
-    <div class="tab-panel" id="panel-manual">
-      <div class="field"><label>نام غذا</label><input id="mName" placeholder="مثلاً: خوراک عدسی خانگی"></div>
-      <div class="field-row">
-        <div class="field"><label>کالری</label><input id="mKcal" type="number" inputmode="decimal" placeholder="0"></div>
-        <div class="field"><label>کربوهیدرات (گرم)</label><input id="mCarb" type="number" inputmode="decimal" placeholder="0"></div>
-      </div>
-      <div class="field-row">
-        <div class="field"><label>پروتئین (گرم)</label><input id="mProtein" type="number" inputmode="decimal" placeholder="0"></div>
-        <div class="field"><label>چربی (گرم)</label><input id="mFat" type="number" inputmode="decimal" placeholder="0"></div>
-      </div>
-      <div class="field"><label>فیبر (گرم)</label><input id="mFiber" type="number" inputmode="decimal" placeholder="0"></div>
-      <button class="btn-primary" id="mAddBtn">افزودن به امروز</button>
-    </div>
-
-    <div id="qtyWrap" style="display:none;">
-      <div class="qty-card">
-        <div class="qty-food">
-          <div class="qty-icon" id="qtyIcon">🍽️</div>
-          <div>
-            <div class="qty-name" id="qtyName">—</div>
-            <div class="qty-sub" id="qtySub">مقدار مصرفی را وارد کن</div>
-          </div>
-        </div>
-        <div class="portion-box">
-          <div class="portion-title">مقدار مصرفی را انتخاب کن</div>
-          <div class="portion-grid" id="portionGrid"></div>
-          <div class="custom-amount" id="customAmountWrap" style="display:none;">
-            <input id="customAmount" type="number" inputmode="decimal" placeholder="مثلاً ۱۵۰">
-            <span>گرم</span>
-          </div>
-        </div>
-        <div class="grams-input" style="margin-top:10px;">
-          <button id="gramsMinus">−</button>
-          <input id="gramsVal" type="number" inputmode="numeric" value="100">
-          <button id="gramsPlus">+</button>
-        </div>
-        <div class="preview-row">
-          <div class="preview-item"><div class="pv num" id="pvKcal">0</div><div class="pl">کالری</div></div>
-          <div class="preview-item"><div class="pv num" id="pvCarb">0</div><div class="pl">کربو</div></div>
-          <div class="preview-item"><div class="pv num" id="pvProtein">0</div><div class="pl">پروتئین</div></div>
-          <div class="preview-item"><div class="pv num" id="pvFiber">0</div><div class="pl">فیبر</div></div>
-        </div>
-      </div>
-      <button class="btn-primary" id="qtyAddBtn">افزودن به امروز</button>
-      <button class="btn-ghost" id="qtyBackBtn">بازگشت</button>
-    </div>
-  </div>
-</div>
-
-<!-- SETTINGS SHEET -->
-<div class="overlay" id="settingsOverlay">
-  <div class="sheet">
-    <div class="sheet-handle"></div>
-    <div class="sheet-head">
-      <div class="sheet-title">هدف‌های روزانه</div>
-      <button class="sheet-close" id="closeSettings">✕</button>
-    </div>
-    <div class="field"><label>کالری (kcal)</label><input id="gKcal" type="number" inputmode="numeric"></div>
-    <div class="field-row">
-      <div class="field"><label>کربوهیدرات (گرم)</label><input id="gCarb" type="number" inputmode="numeric"></div>
-      <div class="field"><label>پروتئین (گرم)</label><input id="gProtein" type="number" inputmode="numeric"></div>
-    </div>
-    <div class="field-row">
-      <div class="field"><label>چربی (گرم)</label><input id="gFat" type="number" inputmode="numeric"></div>
-      <div class="field"><label>فیبر (گرم)</label><input id="gFiber" type="number" inputmode="numeric"></div>
-    </div>
-    <div class="field"><label>تعداد لیوان آب</label><input id="gWater" type="number" inputmode="numeric"></div>
-
-    <button class="btn-ghost" id="toggleCalc" type="button">📐 محاسبه خودکار از روی وزن</button>
-
-    <div id="calcBox" style="display:none;">
-      <div class="field">
-        <label>جنسیت</label>
-        <div class="chip-row" id="genderChips" style="margin-bottom:12px; padding-bottom:0;">
-          <button class="chip active" type="button" data-gender="male">مرد</button>
-          <button class="chip" type="button" data-gender="female">زن</button>
-        </div>
-      </div>
-      <div class="field-row">
-        <div class="field"><label>وزن (کیلوگرم)</label><input id="calcWeight" type="number" inputmode="decimal" placeholder="مثلاً ۷۰"></div>
-        <div class="field"><label>قد (سانتی‌متر)</label><input id="calcHeight" type="number" inputmode="decimal" placeholder="مثلاً ۱۷۵"></div>
-      </div>
-      <div class="field-row">
-        <div class="field"><label>سن</label><input id="calcAge" type="number" inputmode="numeric" placeholder="مثلاً ۲۸"></div>
-        <div class="field">
-          <label>سطح فعالیت</label>
-          <select id="calcActivity">
-            <option value="1.2" style="color: #080f0d;">کم‌تحرک</option>
-            <option value="1.375" style="color: #080f0d;">فعالیت سبک</option>
-            <option value="1.55" selected style="color: #080f0d;">فعالیت متوسط</option>
-            <option value="1.725" style="color: #080f0d;">فعالیت زیاد</option>
-            <option value="1.9" style="color: #080f0d;">فعالیت خیلی زیاد</option>
-          </select>
-        </div>
-      </div>
-      <div class="field">
-        <label>هدف</label>
-        <div class="chip-row" id="goalChips" style="margin-bottom:12px; padding-bottom:0;">
-          <button class="chip" type="button" data-goal="-500">کاهش وزن</button>
-          <button class="chip active" type="button" data-goal="0">حفظ وزن</button>
-          <button class="chip" type="button" data-goal="300">افزایش وزن</button>
-        </div>
-      </div>
-      <div class="hint">این محاسبه یک تخمین کلی‌ست (فرمول میفلین-سنت جیور). فیلدهای بالا رو با نتیجه پر می‌کنه؛ برای ذخیره نهایی هنوز باید «ذخیره» رو بزنی.</div>
-      <button class="btn-primary" id="calcFillBtn" type="button">محاسبه و پر کردن فیلدها</button>
-    </div>
-
-    <button class="btn-primary" id="saveSettings" style="margin-top:12px;">ذخیره</button>
-  </div>
-</div>
-
-<div class="toast-layer" id="toastLayer"></div>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/human/3.3.6/human.js"></script>
 <script>
 (function(){
   "use strict";
 
-  /* ---------------- DATA ---------------- */
-  var QUICK_FOODS = [
-    {name:"برنج سفید پخته",icon:"🍚",cat:"غلات",kcal:130,carb:28,protein:2.7,fat:0.3,fiber:0.4,portionType:"spoon",portionLabel:"قاشق غذاخوری",portionGram:15,photo:"https://commons.wikimedia.org/wiki/Special:Redirect/file/Cooked%20Rice.jpg",photoPage:"https://commons.wikimedia.org/wiki/File:Cooked_Rice.jpg"},
-    {name:"نان لواش",icon:"🫓",cat:"غلات",kcal:274,carb:54,protein:9,fat:1.5,fiber:3,portionType:"palm",portionLabel:"کف دست",portionGram:30,photo:"https://commons.wikimedia.org/wiki/Special:Redirect/file/Lavash%20Bread.jpg",photoPage:"https://commons.wikimedia.org/wiki/File:Lavash_Bread.jpg"},
-    {name:"نان سنگک",icon:"🍞",cat:"غلات",kcal:250,carb:50,protein:8,fat:1,fiber:4,portionType:"palm",portionLabel:"کف دست",portionGram:35},
-    {name:"ماکارونی پخته",icon:"🍝",cat:"غلات",kcal:158,carb:31,protein:5.8,fat:0.9,fiber:1.8,portionType:"grams",portionLabel:"گرم",portionGram:100},
-    {name:"سیب‌زمینی پخته",icon:"🥔",cat:"غلات",kcal:87,carb:20,protein:1.9,fat:0.1,fiber:1.8,portionType:"piece",portionLabel:"عدد متوسط",portionGram:150},
-    {name:"سینه مرغ پخته",icon:"🍗",cat:"پروتئین",kcal:165,carb:0,protein:31,fat:3.6,fiber:0,portionType:"palm",portionLabel:"کف دست",portionGram:100},
-    {name:"گوشت گوسفند پخته",icon:"🥩",cat:"پروتئین",kcal:250,carb:0,protein:25,fat:17,fiber:0,portionType:"palm",portionLabel:"کف دست",portionGram:90},
-    {name:"ماهی قزل‌آلا پخته",icon:"🐟",cat:"پروتئین",kcal:190,carb:0,protein:25,fat:9,fiber:0,portionType:"palm",portionLabel:"کف دست",portionGram:100},
-    {name:"تخم‌مرغ پخته",icon:"🥚",cat:"پروتئین",kcal:155,carb:1.1,protein:13,fat:11,fiber:0,portionType:"piece",portionLabel:"عدد",portionGram:50,photo:"https://commons.wikimedia.org/wiki/Special:Redirect/file/Boiled%20eggs.jpg",photoPage:"https://commons.wikimedia.org/wiki/File:Boiled_eggs.jpg"},
-    {name:"عدسی",icon:"🫘",cat:"پروتئین",kcal:100,carb:16,protein:6.5,fat:1.5,fiber:5,portionType:"grams",portionLabel:"گرم",portionGram:100},
-    {name:"عدس پخته",icon:"🫘",cat:"پروتئین",kcal:116,carb:20,protein:9,fat:0.4,fiber:8,portionType:"grams",portionLabel:"گرم",portionGram:100},
-    {name:"نخود پخته",icon:"🫛",cat:"پروتئین",kcal:164,carb:27,protein:9,fat:2.6,fiber:8,portionType:"grams",portionLabel:"گرم",portionGram:100},
-    {name:"لوبیا قرمز پخته",icon:"🫘",cat:"پروتئین",kcal:127,carb:23,protein:9,fat:0.5,fiber:8,portionType:"grams",portionLabel:"گرم",portionGram:100},
-    {name:"ماست ساده",icon:"🥣",cat:"لبنیات",kcal:61,carb:4.7,protein:3.5,fat:3.3,fiber:0,portionType:"cup",portionLabel:"کاسه کوچک",portionGram:150},
-    {name:"شیر کامل",icon:"🥛",cat:"لبنیات",kcal:61,carb:4.8,protein:3.2,fat:3.3,fiber:0,portionType:"glass",portionLabel:"لیوان",portionGram:240},
-    {name:"پنیر سفید",icon:"🧀",cat:"لبنیات",kcal:264,carb:3.4,protein:18,fat:21,fiber:0,portionType:"matchbox",portionLabel:"قوطی کبریت",portionGram:30},
-    {name:"سیب",icon:"🍎",cat:"میوه",kcal:52,carb:14,protein:0.3,fat:0.2,fiber:2.4,portionType:"piece",portionLabel:"عدد متوسط",portionGram:180},
-    {name:"موز",icon:"🍌",cat:"میوه",kcal:89,carb:23,protein:1.1,fat:0.3,fiber:2.6,portionType:"piece",portionLabel:"عدد متوسط",portionGram:118},
-    {name:"خرما",icon:"🌴",cat:"میوه",kcal:282,carb:75,protein:2.5,fat:0.4,fiber:8,portionType:"piece",portionLabel:"عدد",portionGram:24},
-    {name:"خیار",icon:"🥒",cat:"سبزی",kcal:15,carb:3.6,protein:0.7,fat:0.1,fiber:0.5,portionType:"piece",portionLabel:"عدد کوچک",portionGram:100},
-    {name:"گوجه‌فرنگی",icon:"🍅",cat:"سبزی",kcal:18,carb:3.9,protein:0.9,fat:0.2,fiber:1.2,portionType:"piece",portionLabel:"عدد متوسط",portionGram:120},
-    {name:"گردو",icon:"🌰",cat:"آجیل",kcal:654,carb:14,protein:15,fat:65,fiber:6.7,portionType:"handful",portionLabel:"یک مشت کوچک",portionGram:28},
-    {name:"بادام",icon:"🥜",cat:"آجیل",kcal:579,carb:22,protein:21,fat:50,fiber:12.5,portionType:"handful",portionLabel:"یک مشت کوچک",portionGram:28},
-    {name:"پسته",icon:"🥜",cat:"آجیل",kcal:560,carb:28,protein:20,fat:45,fiber:10,portionType:"handful",portionLabel:"یک مشت کوچک",portionGram:28},
-    {name:"عسل",icon:"🍯",cat:"شیرینی",kcal:304,carb:82,protein:0.3,fat:0,fiber:0.2,portionType:"spoon",portionLabel:"قاشق غذاخوری",portionGram:21},
-    {name:"شکلات تلخ",icon:"🍫",cat:"شیرینی",kcal:546,carb:61,protein:4.9,fat:31,fiber:7,portionType:"piece",portionLabel:"یک تکه",portionGram:10}
-  ];  var CATS = ["همه","غلات","پروتئین","لبنیات","میوه","سبزی","آجیل","شیرینی"];
+  /* ============================================================
+     STORAGE LAYER  (window.storage with graceful in-memory fallback)
+  ============================================================ */
+  var memFallback = {};
+  var storageOK = !!(window.storage && window.storage.get && window.storage.set);
 
-  var DEFAULT_GOALS = {calories:2200, carb:275, protein:90, fat:70, fiber:30, water:8};
-
-  /* ---------------- STATE ---------------- */
-  var state = {
-    date: new Date(),
-    goals: Object.assign({}, DEFAULT_GOALS),
-    log: [],
-    water: 0
-  };
-  var activeCat = "همه";
-  var selectedFood = null;
-  var searchTimer = null;
-
-  /* ---------------- STORAGE HELPERS ---------------- */
-  function pad(n){ return n < 10 ? "0"+n : ""+n; }
-  function dateKey(d){ return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()); }
-  function isToday(d){ var t=new Date(); return dateKey(d)===dateKey(t); }
-
-  var LS_PREFIX = "hasteEnergy:";
-  async function safeGet(key){
-    if(window.storage){
-      try{
-        var r = await window.storage.get(key, false);
-        return r ? JSON.parse(r.value) : null;
-      }catch(e){ /* fall through to localStorage */ }
+  function sGet(key, shared){
+    if (storageOK){
+      return window.storage.get(key, !!shared).then(function(r){ return r ? r.value : null; }).catch(function(){ return null; });
     }
-    try{
-      var v = localStorage.getItem(LS_PREFIX + key);
-      return v ? JSON.parse(v) : null;
-    }catch(e){ return null; }
+    return Promise.resolve(memFallback[key] !== undefined ? memFallback[key] : null);
   }
-  async function safeSet(key, value){
-    if(window.storage){
-      try{
-        await window.storage.set(key, JSON.stringify(value), false);
-        return;
-      }catch(e){ /* fall through to localStorage */ }
+  function sSet(key, value, shared){
+    if (storageOK){
+      return window.storage.set(key, value, !!shared).catch(function(){ memFallback[key]=value; return null; });
     }
-    try{ localStorage.setItem(LS_PREFIX + key, JSON.stringify(value)); }
-    catch(e){ console.error("storage set failed", e); }
+    memFallback[key] = value;
+    return Promise.resolve(null);
   }
-
-  async function loadGoals(){
-    var g = await safeGet("goals");
-    state.goals = g ? Object.assign({}, DEFAULT_GOALS, g) : Object.assign({}, DEFAULT_GOALS);
-  }
-  async function loadDay(){
-    var d = await safeGet("day:" + dateKey(state.date));
-    state.log = (d && d.log) ? d.log : [];
-    state.water = (d && typeof d.water === "number") ? d.water : 0;
-  }
-  async function saveDay(){
-    await safeSet("day:" + dateKey(state.date), {log: state.log, water: state.water});
-  }
-  async function saveGoals(){
-    await safeSet("goals", state.goals);
-  }
-
-  /* ---------------- RENDER ---------------- */
-  var els = {};
-  ["kcalValue","kcalGoalLabel","kcalRemaining","carbVals","carbFill","proteinVals","proteinFill",
-   "fatVals","fatFill","fiberVals","fiberFill","waterCount","glassRow","logList","dayName","dayFull",
-   "ringFg","orbitCarb","orbitProtein","orbitFat","orbitFiber"].forEach(function(id){ els[id]=document.getElementById(id); });
-
-  var RING_CIRC = 2 * Math.PI * 90;
-  els.ringFg.style.strokeDasharray = RING_CIRC;
-  els.ringFg.style.strokeDashoffset = RING_CIRC;
-
-  function sumLog(field){
-    return state.log.reduce(function(acc, item){ return acc + (item[field]||0); }, 0);
-  }
-
-  function render(){
-    var totalKcal = Math.round(sumLog("kcal"));
-    var totalCarb = Math.round(sumLog("carb"));
-    var totalProtein = Math.round(sumLog("protein"));
-    var totalFat = Math.round(sumLog("fat"));
-    var totalFiber = Math.round(sumLog("fiber"));
-    var g = state.goals;
-
-    els.kcalValue.textContent = totalKcal;
-    els.kcalGoalLabel.textContent = g.calories;
-    var remaining = g.calories - totalKcal;
-    if(remaining >= 0){
-      els.kcalRemaining.textContent = remaining + " باقی‌مانده";
-      els.kcalRemaining.classList.remove("over");
-    }else{
-      els.kcalRemaining.textContent = Math.abs(remaining) + " بیش از هدف";
-      els.kcalRemaining.classList.add("over");
+  function sList(prefix, shared){
+    if (storageOK){
+      return window.storage.list(prefix, !!shared).then(function(r){ return r ? r.keys : []; }).catch(function(){ return []; });
     }
-    var pct = Math.max(0, Math.min(1, totalKcal / g.calories));
-    els.ringFg.style.strokeDashoffset = RING_CIRC * (1 - pct);
-
-    setMacro(els.carbVals, els.carbFill, totalCarb, g.carb, "کربو");
-    setMacro(els.proteinVals, els.proteinFill, totalProtein, g.protein, "پروتئین");
-    setMacro(els.fatVals, els.fatFill, totalFat, g.fat, "چربی");
-    setMacro(els.fiberVals, els.fiberFill, totalFiber, g.fiber, "فیبر");
-
-    orbitSpeed(els.orbitCarb, totalCarb / g.carb);
-    orbitSpeed(els.orbitProtein, totalProtein / g.protein);
-    orbitSpeed(els.orbitFat, totalFat / g.fat);
-    orbitSpeed(els.orbitFiber, totalFiber / g.fiber);
-
-    els.waterCount.textContent = state.water + " / " + g.water + " لیوان";
-    renderGlasses();
-    renderLog();
-    renderDate();
+    return Promise.resolve(Object.keys(memFallback).filter(function(k){ return k.indexOf(prefix)===0; }));
   }
 
-  function setMacro(valsEl, fillEl, total, goal, label){
-    valsEl.textContent = total + " / " + goal + " گرم";
-    var pct = goal > 0 ? Math.max(0, Math.min(1, total/goal)) : 0;
-    fillEl.style.width = (pct*100) + "%";
+  /* ============================================================
+     APP STATE
+  ============================================================ */
+  var PROFILE_KEY = 'barfixato:profile';
+  var profile = null; // {id,name,nick,totalReps,sessions,streak,bestStreak,lastActiveDate,firstUseDate}
+
+  function todayStr(){
+    var d = new Date();
+    return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+  }
+  function daysBetween(a,b){
+    var da = new Date(a), db = new Date(b);
+    da.setHours(0,0,0,0); db.setHours(0,0,0,0);
+    return Math.round((db-da)/86400000);
+  }
+  function uid(){
+    return 'u'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
   }
 
-  function orbitSpeed(orbitEl, ratio){
-    var r = Math.max(0, Math.min(1.1, ratio || 0));
-    var duration = 16 - r*10;
-    orbitEl.style.animationDuration = duration + "s";
-    orbitEl.style.opacity = 0.35 + r*0.65;
+  var TIERS = [
+    {min:0,   label:'تازه‌کار', emoji:'🌱'},
+    {min:3,   label:'شعله‌ور', emoji:'🔥'},
+    {min:7,   label:'جنگجوی هفته', emoji:'⚔️'},
+    {min:14,  label:'ماشین بارفیکس', emoji:'🦾'},
+    {min:30,  label:'افسانه‌ای', emoji:'👑'},
+    {min:100, label:'جاودانه', emoji:'🌟'}
+  ];
+  function tierFor(streak){
+    var t = TIERS[0];
+    for (var i=0;i<TIERS.length;i++){ if (streak>=TIERS[i].min) t = TIERS[i]; }
+    return t;
   }
 
-  function renderGlasses(){
-    var g = state.goals.water;
-    var html = "";
-    for(var i=0;i<g;i++){
-      var filled = i < state.water;
-      html += '<button class="glass'+(filled?' filled':'')+'" data-idx="'+i+'"><span class="liquid" style="height:'+(filled?100:0)+'%;"></span></button>';
-    }
-    els.glassRow.innerHTML = html;
-    Array.prototype.forEach.call(els.glassRow.querySelectorAll(".glass"), function(btn){
-      btn.addEventListener("click", function(){
-        var idx = parseInt(btn.getAttribute("data-idx"), 10);
-        if(idx + 1 === state.water){ state.water = idx; }
-        else{ state.water = idx + 1; }
-        saveDay();
-        renderGlasses();
-        els.waterCount.textContent = state.water + " / " + state.goals.water + " لیوان";
-      });
+  function loadProfile(){
+    return sGet(PROFILE_KEY, false).then(function(raw){
+      if (raw){
+        try { profile = JSON.parse(raw); } catch(e){ profile = null; }
+      }
+      return profile;
+    });
+  }
+  function saveProfile(){
+    return sSet(PROFILE_KEY, JSON.stringify(profile), false).then(function(){
+      return sSet('barfixato:leaderboard:'+profile.id, JSON.stringify({
+        nick: profile.nick, total: profile.totalReps, streak: profile.streak, updatedAt: Date.now()
+      }), true);
     });
   }
 
-  function renderLog(){
-    if(state.log.length === 0){
-      els.logList.innerHTML = '<div class="log-empty"><span class="emoji">🍽️</span>هنوز چیزی ثبت نشده<br>با دکمه + شروع کن</div>';
-      return;
+  function ensureTodayRolledIn(){
+    // called on load: if lastActiveDate exists and gap > 1 day, streak resets to 0 (broken)
+    if (!profile.lastActiveDate) return;
+    var diff = daysBetween(profile.lastActiveDate, todayStr());
+    if (diff > 1){ profile.streak = 0; }
+  }
+
+  function recordSession(reps){
+    var today = todayStr();
+    profile.totalReps += reps;
+    profile.sessions.push({date:today, reps:reps, ts:Date.now()});
+    if (profile.sessions.length > 200) profile.sessions = profile.sessions.slice(-200);
+
+    var isFirstToday = true;
+    for (var i=0;i<profile.sessions.length-1;i++){
+      if (profile.sessions[i].date === today){ isFirstToday = false; break; }
     }
-    var html = "";
-    state.log.slice().reverse().forEach(function(item){
-      html += '<div class="log-item" data-id="'+item.id+'">'+
-        '<div class="log-icon">'+item.icon+'</div>'+
-        '<div class="log-info">'+
-          '<div class="log-name">'+escapeHtml(item.name)+(item.portion?(' · '+escapeHtml(item.portion)):(item.grams?(' · '+item.grams+' گرم'):''))+'</div>'+
-          '<div class="log-macros">ک'+Math.round(item.carb)+' · پ'+Math.round(item.protein)+' · چ'+Math.round(item.fat)+' · ف'+Math.round(item.fiber)+'</div>'+
-        '</div>'+
-        '<div class="log-kcal">'+Math.round(item.kcal)+'</div>'+
-        '<button class="log-del" data-id="'+item.id+'">✕</button>'+
-      '</div>';
-    });
-    els.logList.innerHTML = html;
-    Array.prototype.forEach.call(els.logList.querySelectorAll(".log-del"), function(btn){
-      btn.addEventListener("click", function(){
-        var id = btn.getAttribute("data-id");
-        state.log = state.log.filter(function(it){ return it.id !== id; });
-        saveDay();
-        render();
-      });
-    });
-  }
-
-  function renderDate(){
-    if(isToday(state.date)){
-      els.dayName.textContent = "امروز";
-    }else{
-      els.dayName.textContent = state.date.toLocaleDateString("fa-IR", {weekday:"long"});
+    if (!profile.lastActiveDate){
+      profile.streak = 1;
+    } else {
+      var diff = daysBetween(profile.lastActiveDate, today);
+      if (diff === 0){ /* already active today, streak unchanged */ }
+      else if (diff === 1){ profile.streak += 1; }
+      else { profile.streak = 1; }
     }
-    els.dayFull.textContent = state.date.toLocaleDateString("fa-IR", {day:"numeric", month:"long"});
+    profile.lastActiveDate = today;
+    if (profile.streak > profile.bestStreak) profile.bestStreak = profile.streak;
+    return saveProfile();
   }
 
-  function escapeHtml(s){
-    return String(s).replace(/[&<>"']/g, function(c){
-      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
-    });
-  }
-
-  /* ---------------- TOAST + BURST ---------------- */
-  var toastLayer = document.getElementById("toastLayer");
-  var burstColors = ["#f2a93b","#ef5b72","#6fcf97","#4fc3f7","#b98bf5"];
-  function celebrate(kcal){
-    var t = document.createElement("div");
-    t.className = "toast";
-    t.textContent = "+" + Math.round(kcal) + " kcal";
-    toastLayer.appendChild(t);
-    setTimeout(function(){ t.remove(); }, 1300);
-
-    for(var i=0;i<10;i++){
-      var d = document.createElement("div");
-      d.className = "burst-dot";
-      d.style.background = burstColors[i % burstColors.length];
-      var angle = (Math.PI * 2 * i) / 10;
-      var dist = 60 + Math.random()*40;
-      d.style.setProperty("--tx", Math.cos(angle)*dist + "px");
-      d.style.setProperty("--ty", Math.sin(angle)*dist + "px");
-      toastLayer.appendChild(d);
-      (function(dot){ setTimeout(function(){ dot.remove(); }, 850); })(d);
+  function todayReps(){
+    var today = todayStr(), sum = 0;
+    for (var i=0;i<profile.sessions.length;i++){
+      if (profile.sessions[i].date === today) sum += profile.sessions[i].reps;
     }
-    var ring = document.getElementById("ringStage");
-    ring.style.filter = "drop-shadow(0 0 22px rgba(242,169,59,0.6))";
-    setTimeout(function(){ ring.style.filter = ""; }, 500);
+    return sum;
+  }
+  function daysInApp(){
+    if (!profile.firstUseDate) return 1;
+    return daysBetween(profile.firstUseDate, todayStr()) + 1;
   }
 
-  /* ---------------- 3D TILT ---------------- */
-  var ringStage = document.getElementById("ringStage");
-  var heroCard = document.querySelector(".hero-card");
-  function handleTilt(clientX, clientY){
-    var rect = heroCard.getBoundingClientRect();
-    var px = (clientX - rect.left) / rect.width - 0.5;
-    var py = (clientY - rect.top) / rect.height - 0.5;
-    ringStage.style.transform = "rotateY(" + (px*14) + "deg) rotateX(" + (py*-14) + "deg)";
-  }
-  heroCard.addEventListener("mousemove", function(e){ handleTilt(e.clientX, e.clientY); });
-  heroCard.addEventListener("mouseleave", function(){ ringStage.style.transform = "rotateY(0deg) rotateX(0deg)"; });
-  heroCard.addEventListener("touchmove", function(e){
-    if(e.touches[0]){ handleTilt(e.touches[0].clientX, e.touches[0].clientY); }
-  }, {passive:true});
-  heroCard.addEventListener("touchend", function(){ ringStage.style.transform = "rotateY(0deg) rotateX(0deg)"; });
+  /* ============================================================
+     VIEW ROUTER
+  ============================================================ */
+  var views = {};
+  document.querySelectorAll('.view').forEach(function(v){ views[v.id]=v; });
+  var bottomNav = document.getElementById('bottom-nav');
 
-  /* ---------------- DAY NAV ---------------- */
-  document.getElementById("prevDay").addEventListener("click", async function(){
-    state.date = new Date(state.date.getTime() - 86400000);
-    await loadDay();
-    render();
-  });
-  document.getElementById("nextDay").addEventListener("click", async function(){
-    state.date = new Date(state.date.getTime() + 86400000);
-    await loadDay();
-    render();
+  function showView(id, opts){
+    opts = opts || {};
+    Object.keys(views).forEach(function(k){ views[k].classList.toggle('active', k===id); });
+    bottomNav.style.display = opts.nav === false ? 'none' : (['view-home','view-leaderboard','view-profile'].indexOf(id)>-1 ? 'flex':'none');
+    document.querySelectorAll('.nav-btn').forEach(function(b){
+      b.classList.toggle('active', b.getAttribute('data-nav')===id);
+    });
+    if (id === 'view-home') renderHome();
+    if (id === 'view-leaderboard') renderLeaderboard();
+    if (id === 'view-profile') renderProfile();
+    window.scrollTo(0,0);
+  }
+
+  document.querySelectorAll('.nav-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){ showView(btn.getAttribute('data-nav')); });
   });
 
-  /* ---------------- ADD FOOD SHEET ---------------- */
-  var addOverlay = document.getElementById("addOverlay");
-  var qtyWrap = document.getElementById("qtyWrap");
-  var tabsWrap = document.querySelector(".tabs");
+  /* ============================================================
+     ONBOARDING
+  ============================================================ */
+  var inputName = document.getElementById('input-name');
+  var inputNick = document.getElementById('input-nick');
+  var btnNameNext = document.getElementById('btn-name-next');
+  var btnNickNext = document.getElementById('btn-nick-next');
 
-  function openAdd(){
-    addOverlay.classList.add("open");
-    showTabsUI();
-  }
-  function closeAdd(){ addOverlay.classList.remove("open"); }
-  document.getElementById("fabAdd").addEventListener("click", openAdd);
-  document.getElementById("closeAdd").addEventListener("click", closeAdd);
-  addOverlay.addEventListener("click", function(e){ if(e.target === addOverlay) closeAdd(); });
-
-  function showTabsUI(){
-    qtyWrap.style.display = "none";
-    tabsWrap.style.display = "flex";
-    document.querySelectorAll(".tab-panel").forEach(function(p){
-      p.style.display = p.classList.contains("active") ? "block" : "none";
-    });
-  }
-  function showQtyUI(){
-    tabsWrap.style.display = "none";
-    document.querySelectorAll(".tab-panel").forEach(function(p){ p.style.display = "none"; });
-    qtyWrap.style.display = "block";
-  }
-
-  document.querySelectorAll(".tab-btn").forEach(function(btn){
-    btn.addEventListener("click", function(){
-      document.querySelectorAll(".tab-btn").forEach(function(b){ b.classList.remove("active"); });
-      btn.classList.add("active");
-      var tab = btn.getAttribute("data-tab");
-      document.querySelectorAll(".tab-panel").forEach(function(p){
-        var active = p.id === "panel-" + tab;
-        p.classList.toggle("active", active);
-        p.style.display = active ? "block" : "none";
-      });
-    });
+  inputName.addEventListener('input', function(){
+    btnNameNext.disabled = inputName.value.trim().length < 1;
+  });
+  inputNick.addEventListener('input', function(){
+    btnNickNext.disabled = inputNick.value.trim().length < 1;
+  });
+  btnNameNext.addEventListener('click', function(){ showView('view-ob-nick', {nav:false}); setTimeout(function(){inputNick.focus();},300); });
+  btnNickNext.addEventListener('click', function(){
+    var name = inputName.value.trim().slice(0,30);
+    var nick = inputNick.value.trim().slice(0,24);
+    profile = {
+      id: uid(), name: name, nick: nick,
+      totalReps: 0, sessions: [], streak: 0, bestStreak: 0,
+      lastActiveDate: null, firstUseDate: todayStr()
+    };
+    saveProfile().then(function(){ showView('view-home'); });
   });
 
-  /* Quick add */
-  var chipRow = document.getElementById("chipRow");
-  var quickGrid = document.getElementById("quickGrid");
-  CATS.forEach(function(cat){
-    var chip = document.createElement("button");
-    chip.className = "chip" + (cat === activeCat ? " active" : "");
-    chip.textContent = cat;
-    chip.addEventListener("click", function(){
-      activeCat = cat;
-      Array.prototype.forEach.call(chipRow.children, function(c){ c.classList.toggle("active", c.textContent === cat); });
-      renderQuickGrid();
-    });
-    chipRow.appendChild(chip);
-  });
-  function renderQuickGrid(){
-    var list = activeCat === "همه" ? QUICK_FOODS : QUICK_FOODS.filter(function(f){ return f.cat === activeCat; });
-    quickGrid.innerHTML = list.map(function(f){
-      var idx=QUICK_FOODS.indexOf(f);
-      var portionText=f.portionType==="grams" ? "ورود مقدار بر حسب گرم" : "پیشنهاد: "+f.portionLabel;
-      var img=f.photo ? '<img class="qphoto" src="'+f.photo+'" alt="'+escapeHtml(f.name)+'" loading="lazy">' : '<span class="qi">'+f.icon+'</span>';
-      var link=f.photo ? '<a class="qimg-link" href="'+f.photoPage+'" target="_blank" rel="noopener" title="منبع عکس">↗</a>' : '';
-      return '<button class="quick-card" data-idx="'+idx+'">'+link+img+'<span class="qbody"><span class="qn">'+f.name+'</span><br><span class="qk">'+f.kcal+' kcal / ۱۰۰گ</span><br><span class="qportion">'+portionText+'</span></span></button>';
-    }).join("");
-    Array.prototype.forEach.call(quickGrid.querySelectorAll(".quick-card"),function(btn){
-      btn.addEventListener("click",function(e){
-        if(e.target.closest && e.target.closest(".qimg-link")) return;
-        var f=QUICK_FOODS[parseInt(btn.getAttribute("data-idx"),10)];
-        openQty({name:f.name,icon:f.icon,per100:{kcal:f.kcal,carb:f.carb,protein:f.protein,fat:f.fat,fiber:f.fiber},portionType:f.portionType,portionLabel:f.portionLabel,portionGram:f.portionGram});
-      });
+  function renderHome(){
+    document.getElementById('home-who').textContent = 'سلام ' + profile.name + ' 👋';
+    var d = new Date();
+    var weekdays = ['یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه','شنبه'];
+    document.getElementById('home-date').textContent = weekdays[d.getDay()] + ' — @' + profile.nick;
+    document.getElementById('home-total').textContent = profile.totalReps;
+    document.getElementById('home-today').textContent = todayReps();
+    document.getElementById('home-days').textContent = daysInApp();
+    document.getElementById('home-streak').textContent = profile.streak;
+    document.getElementById('home-best-streak').textContent = profile.bestStreak;
+    var t = tierFor(profile.streak);
+    document.getElementById('home-tier').textContent = t.emoji + ' ' + t.label;
+    document.getElementById('home-rank').textContent = '—';
+    computeMyRank().then(function(rank){
+      document.getElementById('home-rank').textContent = rank ? ('#'+rank) : '—';
     });
   }
-  renderQuickGrid();
 
-  /* Search (Open Food Facts) */
-  var searchInput = document.getElementById("searchInput");
-  var resultList = document.getElementById("resultList");
-  function doSearch(){
-    var q = searchInput.value.trim();
-    if(!q){ resultList.innerHTML = ""; return; }
-    resultList.innerHTML = '<div class="state-msg">در حال جستجو...</div>';
-    var url = "https://world.openfoodfacts.org/cgi/search.pl?search_terms=" + encodeURIComponent(q) + "&search_simple=1&action=process&json=1&page_size=10";
-    fetch(url).then(function(r){ return r.json(); }).then(function(data){
-      var products = (data && data.products) ? data.products : [];
-      products = products.filter(function(p){
-        return p.nutriments && (p.nutriments["energy-kcal_100g"] !== undefined);
-      }).slice(0, 8);
-      if(products.length === 0){
-        resultList.innerHTML = '<div class="state-msg">چیزی پیدا نشد. از «افزودن سریع» یا «دستی» استفاده کن.</div>';
+  function computeMyRank(){
+    return sList('barfixato:leaderboard:', true).then(function(keys){
+      if (!keys.length) return null;
+      return Promise.all(keys.map(function(k){ return sGet(k, true); })).then(function(vals){
+        var entries = [];
+        vals.forEach(function(v){
+          if (!v) return;
+          try { entries.push(JSON.parse(v)); } catch(e){}
+        });
+        entries.sort(function(a,b){ return (b.total||0)-(a.total||0); });
+        for (var i=0;i<entries.length;i++){
+          if (entries[i].nick === profile.nick && entries[i].total === profile.totalReps) return i+1;
+        }
+        for (var j=0;j<entries.length;j++){ if (entries[j].nick === profile.nick) return j+1; }
+        return null;
+      });
+    }).catch(function(){ return null; });
+  }
+
+  document.getElementById('btn-start-workout').addEventListener('click', function(){ startWorkoutFlow(); });
+  document.getElementById('btn-goto-leaderboard').addEventListener('click', function(){ showView('view-leaderboard'); });
+  document.getElementById('btn-manual-add').addEventListener('click', function(){
+    var v = prompt('چند تا بارفیکس زدی؟');
+    var n = parseInt(v, 10);
+    if (!isNaN(n) && n > 0 && n < 1000){
+      recordSession(n).then(function(){ openSummary(n); });
+    }
+  });
+
+  /* ============================================================
+     LEADERBOARD
+  ============================================================ */
+  function renderLeaderboard(){
+    var list = document.getElementById('lb-list');
+    list.innerHTML = '<div class="center-msg">در حال بارگذاری...</div>';
+    sList('barfixato:leaderboard:', true).then(function(keys){
+      if (!keys.length){
+        list.innerHTML = '<div class="lb-empty">هنوز کسی توی رنکینگ نیست.<br>اولین نفر باش! 💪</div>';
         return;
       }
-      resultList.innerHTML = products.map(function(p, i){
-        var name = p.product_name || p.generic_name || "محصول ناشناس";
-        var kcal = Math.round(p.nutriments["energy-kcal_100g"] || 0);
-        return '<button class="result-item" data-idx="'+i+'">'+
-          '<span class="result-thumb">🥫</span>'+
-          '<span class="result-name">'+escapeHtml(name)+'</span>'+
-          '<span class="result-kcal">'+kcal+' kcal/۱۰۰گ</span>'+
-        '</button>';
-      }).join("");
-      Array.prototype.forEach.call(resultList.querySelectorAll(".result-item"), function(btn){
-        btn.addEventListener("click", function(){
-          var p = products[parseInt(btn.getAttribute("data-idx"),10)];
-          var n = p.nutriments;
-          openQty({
-            name: p.product_name || p.generic_name || "محصول",
-            icon: "🥫",
-            per100: {
-              kcal: n["energy-kcal_100g"] || 0,
-              carb: n["carbohydrates_100g"] || 0,
-              protein: n["proteins_100g"] || 0,
-              fat: n["fat_100g"] || 0,
-              fiber: n["fiber_100g"] || 0
-            }
-          });
+      return Promise.all(keys.map(function(k){ return sGet(k, true); })).then(function(vals){
+        var entries = [];
+        vals.forEach(function(v){
+          if (!v) return;
+          try { entries.push(JSON.parse(v)); } catch(e){}
         });
+        entries.sort(function(a,b){ return (b.total||0)-(a.total||0); });
+        entries = entries.slice(0, 100);
+        if (!entries.length){
+          list.innerHTML = '<div class="lb-empty">هنوز کسی توی رنکینگ نیست.<br>اولین نفر باش! 💪</div>';
+          return;
+        }
+        var html = '';
+        var medals = ['🥇','🥈','🥉'];
+        entries.forEach(function(e, i){
+          var isMe = (e.nick === profile.nick);
+          html += '<div class="lb-row'+(isMe?' me':'')+'">' +
+            '<div class="lb-rank">'+(medals[i] || (i+1))+'</div>' +
+            '<div class="lb-name"><div class="n">'+escapeHtml(e.nick||'ناشناس')+(isMe?' (تو)':'')+'</div>' +
+            '<div class="s">استریک '+ (e.streak||0) +' روزه</div></div>' +
+            '<div class="lb-total">'+(e.total||0)+'<span class="u">بارفیکس</span></div>' +
+            '</div>';
+        });
+        list.innerHTML = html;
       });
     }).catch(function(){
-      resultList.innerHTML = '<div class="state-msg">خطا در اتصال. از «افزودن سریع» یا «دستی» استفاده کن.</div>';
+      list.innerHTML = '<div class="lb-empty">مشکلی توی بارگذاری رنکینگ پیش اومد.<br>یه بار دیگه امتحان کن.</div>';
     });
   }
-  document.getElementById("searchGo").addEventListener("click", doSearch);
-  searchInput.addEventListener("input", function(){
-    clearTimeout(searchTimer);
-    searchTimer = setTimeout(doSearch, 550);
-  });
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
 
-  /* Quantity step */
-  var gramsVal = document.getElementById("gramsVal");
-  var selectedPortion=null;
-  function portionOptions(food){
-    var options=[];
-    if(food.portionType==="grams") options=[{label:"گرم",grams:100},{label:"۵۰ گرم",grams:50},{label:"۱۵۰ گرم",grams:150},{label:"۲۰۰ گرم",grams:200}];
-    else {
-      options=[{label:food.portionLabel,grams:food.portionGram}];
-      if(food.portionType==="piece") options.push({label:"۲ عدد",grams:food.portionGram*2});
-      if(food.portionType==="palm") options.push({label:"۲ کف دست",grams:food.portionGram*2});
-      if(food.portionType==="spoon") options.push({label:"۲ قاشق",grams:food.portionGram*2});
-      if(food.portionType==="glass") options.push({label:"۲ لیوان",grams:food.portionGram*2});
-      if(food.portionType==="handful") options.push({label:"۲ مشت کوچک",grams:food.portionGram*2});
-      options.push({label:"مقدار دلخواه",grams:null});
+  function renderProfile(){
+    document.getElementById('profile-avatar').textContent = (profile.name||'?').trim().charAt(0).toUpperCase();
+    document.getElementById('profile-name').textContent = profile.name;
+    document.getElementById('profile-nick').textContent = '@' + profile.nick;
+    document.getElementById('profile-total').textContent = profile.totalReps;
+    document.getElementById('profile-streak').textContent = profile.streak;
+    document.getElementById('profile-days').textContent = daysInApp();
+  }
+  document.getElementById('btn-edit-nick').addEventListener('click', function(){
+    var v = prompt('لقب جدید:', profile.nick);
+    if (v && v.trim()){
+      profile.nick = v.trim().slice(0,24);
+      saveProfile().then(renderProfile);
     }
-    return options;
+  });
+  document.getElementById('btn-reset-data').addEventListener('click', function(){
+    if (confirm('مطمئنی می‌خوای همه اطلاعاتت پاک بشه؟ این کار برگشت‌ناپذیره.')){
+      profile = null;
+      sSet(PROFILE_KEY, '', false).then(function(){
+        inputName.value=''; inputNick.value='';
+        btnNameNext.disabled = true; btnNickNext.disabled = true;
+        showView('view-ob-name', {nav:false});
+      });
+    }
+  });
+
+  /* ============================================================
+     SUMMARY MODAL
+  ============================================================ */
+  function openSummary(reps){
+    var modal = document.getElementById('modal-summary');
+    var big = reps >= 15;
+    document.getElementById('summary-emoji').textContent = big ? '🏆' : (reps>0 ? '💪' : '👋');
+    document.getElementById('summary-title').textContent = reps>0 ? 'آفرین!' : 'تمرین ثبت شد';
+    document.getElementById('summary-sub').textContent = 'استریکت الان ' + profile.streak + ' روزه‌ست';
+    document.getElementById('summary-reps').textContent = reps;
+    document.getElementById('summary-total').textContent = profile.totalReps;
+    modal.classList.add('show');
   }
-  function renderPortions(food){
-    var grid=document.getElementById("portionGrid"),wrap=document.getElementById("customAmountWrap"),opts=portionOptions(food);
-    grid.innerHTML=opts.map(function(o,i){return '<button type="button" class="portion-btn'+(i===0?' active':'')+'" data-grams="'+(o.grams===null?'custom':o.grams)+'">'+o.label+'</button>';}).join("");
-    selectedPortion=opts[0]; wrap.style.display="none";
-    Array.prototype.forEach.call(grid.querySelectorAll(".portion-btn"),function(btn){btn.addEventListener("click",function(){
-      Array.prototype.forEach.call(grid.querySelectorAll(".portion-btn"),function(b){b.classList.remove("active")}); btn.classList.add("active");
-      var g=btn.getAttribute("data-grams");
-      if(g==="custom"){wrap.style.display="flex";selectedPortion={label:"مقدار دلخواه",grams:0};}
-      else{wrap.style.display="none";selectedPortion={label:btn.textContent,grams:parseFloat(g)};gramsVal.value=selectedPortion.grams;updatePreview();}
-    });});
-    document.getElementById("customAmount").value="";
-    document.getElementById("customAmount").oninput=function(){selectedPortion.grams=Math.max(0,parseFloat(this.value)||0);gramsVal.value=selectedPortion.grams;updatePreview();};
+  document.getElementById('btn-summary-close').addEventListener('click', function(){
+    document.getElementById('modal-summary').classList.remove('show');
+    showView('view-home');
+  });
+
+  /* ============================================================
+     POSE DETECTION / WORKOUT
+  ============================================================ */
+  var video = document.getElementById('video');
+  var canvas = document.getElementById('overlay');
+  var ctx = canvas.getContext('2d');
+  var repCountEl = document.getElementById('rep-count');
+  var coachBanner = document.getElementById('coach-banner');
+  var camFallback = document.getElementById('cam-fallback');
+
+  var human = null;
+  var humanReady = false;
+  var stream = null;
+  var running = false;
+  var paused = false;
+  var sessionReps = 0;
+  var manualTapReps = 0;
+  var usingFallback = false;
+
+  var repState = 'down'; // 'down' | 'up'
+  var smoothAngle = null;
+  var minGapDuringUp = null;
+  var lastRepTime = 0;
+  var lastNoValidPoseAt = 0;
+
+  var timerStart = 0, timerInterval = null;
+
+  function fmtTime(sec){
+    var m = Math.floor(sec/60), s = Math.floor(sec%60);
+    return (m<10?'0':'')+m+':'+(s<10?'0':'')+s;
   }
-  function openQty(food){
-    selectedFood=food; document.getElementById("qtyIcon").textContent=food.icon; document.getElementById("qtyName").textContent=food.name;
-    gramsVal.value=food.portionGram||100; renderPortions(food); updatePreview(); showQtyUI();
+
+  function initHuman(){
+    if (human) return Promise.resolve(human);
+    try {
+      var HumanCtor = (window.Human && (window.Human.Human || window.Human.default)) || window.Human;
+      human = new HumanCtor({
+        modelBasePath: 'https://cdn.jsdelivr.net/npm/@vladmandic/human@3.3.6/models/',
+        backend: 'webgl',
+        warmup: 'none',
+        cacheSensitivity: 0,
+        face: {enabled:false},
+        hand: {enabled:false},
+        object: {enabled:false},
+        gesture: {enabled:false},
+        segmentation: {enabled:false},
+        filter: {enabled:false},
+        body: {enabled:true, maxDetected:1}
+      });
+      return human.load().then(function(){ humanReady = true; return human; });
+    } catch(e){
+      return Promise.reject(e);
+    }
   }
-  function updatePreview(){
-    var grams = Math.max(0, parseFloat(gramsVal.value) || 0);
-    var f = selectedFood.per100;
-    var mult = grams / 100;
-    document.getElementById("pvKcal").textContent = Math.round(f.kcal * mult);
-    document.getElementById("pvCarb").textContent = Math.round(f.carb * mult) + "گ";
-    document.getElementById("pvProtein").textContent = Math.round(f.protein * mult) + "گ";
-    document.getElementById("pvFiber").textContent = Math.round((f.fiber||0) * mult) + "گ";
-  }
-  gramsVal.addEventListener("input", updatePreview);
-  document.getElementById("gramsPlus").addEventListener("click", function(){ gramsVal.value = (parseFloat(gramsVal.value)||0) + 10; updatePreview(); });
-  document.getElementById("gramsMinus").addEventListener("click", function(){ gramsVal.value = Math.max(0,(parseFloat(gramsVal.value)||0) - 10); updatePreview(); });
-  document.getElementById("qtyBackBtn").addEventListener("click", showTabsUI);
-  document.getElementById("qtyAddBtn").addEventListener("click", function(){
-    var grams = Math.max(0, parseFloat(gramsVal.value) || 0);
-    var f = selectedFood.per100;
-    var mult = grams/100;
-    addLogItem({
-      name: selectedFood.name,
-      icon: selectedFood.icon,
-      grams: grams,
-      kcal: f.kcal*mult, carb: f.carb*mult, protein: f.protein*mult, fat: f.fat*mult, fiber: (f.fiber||0)*mult
+
+  function startCamera(){
+    return navigator.mediaDevices.getUserMedia({
+      video: {facingMode:'user', width:{ideal:640}, height:{ideal:480}},
+      audio:false
+    }).then(function(s){
+      stream = s;
+      video.srcObject = s;
+      return new Promise(function(resolve){
+        video.onloadedmetadata = function(){
+          video.play();
+          canvas.width = video.videoWidth || 640;
+          canvas.height = video.videoHeight || 480;
+          resolve();
+        };
+      });
     });
-    closeAdd();
-  });
-
-  /* Manual add */
-  document.getElementById("mAddBtn").addEventListener("click", function(){
-    var name = document.getElementById("mName").value.trim() || "غذای دستی";
-    var kcal = parseFloat(document.getElementById("mKcal").value) || 0;
-    var carb = parseFloat(document.getElementById("mCarb").value) || 0;
-    var protein = parseFloat(document.getElementById("mProtein").value) || 0;
-    var fat = parseFloat(document.getElementById("mFat").value) || 0;
-    var fiber = parseFloat(document.getElementById("mFiber").value) || 0;
-    addLogItem({name:name, icon:"✍️", grams:null, portion:null, kcal:kcal, carb:carb, protein:protein, fat:fat, fiber:fiber});
-    ["mName","mKcal","mCarb","mProtein","mFat","mFiber"].forEach(function(id){ document.getElementById(id).value=""; });
-    closeAdd();
-  });
-
-  function addLogItem(item){
-    item.id = "id" + Date.now() + Math.random().toString(16).slice(2);
-    state.log.push(item);
-    saveDay();
-    render();
-    celebrate(item.kcal);
   }
 
-  /* ---------------- SETTINGS ---------------- */
-  var settingsOverlay = document.getElementById("settingsOverlay");
-  document.getElementById("openSettings").addEventListener("click", function(){
-    document.getElementById("gKcal").value = state.goals.calories;
-    document.getElementById("gCarb").value = state.goals.carb;
-    document.getElementById("gProtein").value = state.goals.protein;
-    document.getElementById("gFat").value = state.goals.fat;
-    document.getElementById("gFiber").value = state.goals.fiber;
-    document.getElementById("gWater").value = state.goals.water;
-    settingsOverlay.classList.add("open");
-  });
-  document.getElementById("closeSettings").addEventListener("click", function(){ settingsOverlay.classList.remove("open"); });
-  settingsOverlay.addEventListener("click", function(e){ if(e.target === settingsOverlay) settingsOverlay.classList.remove("open"); });
-  document.getElementById("saveSettings").addEventListener("click", function(){
-    state.goals = {
-      calories: parseFloat(document.getElementById("gKcal").value) || DEFAULT_GOALS.calories,
-      carb: parseFloat(document.getElementById("gCarb").value) || DEFAULT_GOALS.carb,
-      protein: parseFloat(document.getElementById("gProtein").value) || DEFAULT_GOALS.protein,
-      fat: parseFloat(document.getElementById("gFat").value) || DEFAULT_GOALS.fat,
-      fiber: parseFloat(document.getElementById("gFiber").value) || DEFAULT_GOALS.fiber,
-      water: parseInt(document.getElementById("gWater").value,10) || DEFAULT_GOALS.water
-    };
-    saveGoals();
-    settingsOverlay.classList.remove("open");
-    render();
-  });
+  function stopCamera(){
+    if (stream){
+      stream.getTracks().forEach(function(t){ t.stop(); });
+      stream = null;
+    }
+    video.srcObject = null;
+  }
 
-  /* ---------------- AUTO CALC GOALS ---------------- */
-  var calcGender = "male";
-  var calcGoal = "0";
-  var calcBox = document.getElementById("calcBox");
-  var toggleCalcBtn = document.getElementById("toggleCalc");
-  toggleCalcBtn.addEventListener("click", function(){
-    var open = calcBox.style.display !== "none";
-    calcBox.style.display = open ? "none" : "block";
-    toggleCalcBtn.textContent = open ? "📐 محاسبه خودکار از روی وزن" : "📐 بستن محاسبه‌گر";
-  });
-  Array.prototype.forEach.call(document.querySelectorAll("#genderChips .chip"), function(btn){
-    btn.addEventListener("click", function(){
-      calcGender = btn.getAttribute("data-gender");
-      Array.prototype.forEach.call(document.querySelectorAll("#genderChips .chip"), function(b){ b.classList.toggle("active", b===btn); });
-    });
-  });
-  Array.prototype.forEach.call(document.querySelectorAll("#goalChips .chip"), function(btn){
-    btn.addEventListener("click", function(){
-      calcGoal = btn.getAttribute("data-goal");
-      Array.prototype.forEach.call(document.querySelectorAll("#goalChips .chip"), function(b){ b.classList.toggle("active", b===btn); });
-    });
-  });
-  document.getElementById("calcFillBtn").addEventListener("click", function(){
-    var w = parseFloat(document.getElementById("calcWeight").value);
-    var h = parseFloat(document.getElementById("calcHeight").value);
-    var a = parseFloat(document.getElementById("calcAge").value);
-    var activity = parseFloat(document.getElementById("calcActivity").value);
-    var goalAdj = parseFloat(calcGoal);
-    if(!w || !h || !a || w<=0 || h<=0 || a<=0){
-      alert("لطفاً وزن، قد و سن رو درست وارد کن.");
+  function getKP(keypoints, names){
+    for (var i=0;i<keypoints.length;i++){
+      var kp = keypoints[i];
+      var part = (kp.part || kp.label || kp.name || '').toString().toLowerCase().replace(/[_\s]/g,'');
+      for (var j=0;j<names.length;j++){
+        if (part === names[j]) return kp;
+      }
+    }
+    return null;
+  }
+  function kpXY(kp){
+    if (!kp) return null;
+    if (Array.isArray(kp.position)) return {x:kp.position[0], y:kp.position[1]};
+    if (kp.position && typeof kp.position.x === 'number') return {x:kp.position.x, y:kp.position.y};
+    if (typeof kp.x === 'number') return {x:kp.x, y:kp.y};
+    return null;
+  }
+  function angleAt(a,b,c){
+    // angle at point b, formed by a-b-c
+    var v1 = {x:a.x-b.x, y:a.y-b.y};
+    var v2 = {x:c.x-b.x, y:c.y-b.y};
+    var dot = v1.x*v2.x + v1.y*v2.y;
+    var m1 = Math.hypot(v1.x,v1.y), m2 = Math.hypot(v2.x,v2.y);
+    if (m1<1e-4 || m2<1e-4) return null;
+    var cos = Math.max(-1, Math.min(1, dot/(m1*m2)));
+    return Math.acos(cos) * (180/Math.PI);
+  }
+
+  var UP_ENTER = 100;   // elbow angle below this => entering 'up' phase
+  var DOWN_EXIT = 155;  // elbow angle above this => back to 'down', rep confirmed
+  var MIN_REP_INTERVAL = 500; // ms
+  var CHIN_OK_GAP = 40; // px tolerance: nose must get within wrist-Y + this to count as valid rep
+
+  function processPose(result){
+    if (!result || !result.body || !result.body.length){
+      coachBanner.textContent = 'یه قدم عقب‌تر برو تا کل بدنت دیده بشه';
       return;
     }
-    /* Mifflin-St Jeor BMR */
-    var bmr = calcGender === "male"
-      ? (10*w + 6.25*h - 5*a + 5)
-      : (10*w + 6.25*h - 5*a - 161);
-    var tdee = bmr * activity;
-    var calories = Math.max(1200, Math.round(tdee + goalAdj));
+    var kps = result.body[0].keypoints;
+    var lS = kpXY(getKP(kps,['leftshoulder']));
+    var rS = kpXY(getKP(kps,['rightshoulder']));
+    var lE = kpXY(getKP(kps,['leftelbow']));
+    var rE = kpXY(getKP(kps,['rightelbow']));
+    var lW = kpXY(getKP(kps,['leftwrist']));
+    var rW = kpXY(getKP(kps,['rightwrist']));
+    var nose = kpXY(getKP(kps,['nose']));
 
-    var proteinPerKg = goalAdj < 0 ? 2.0 : (goalAdj > 0 ? 1.6 : 1.8);
-    var protein = Math.round(w * proteinPerKg);
-    var fat = Math.round((calories * 0.25) / 9);
-    var carbCals = Math.max(0, calories - protein*4 - fat*9);
-    var carb = Math.round(carbCals / 4);
-    var fiber = Math.round((calories/1000) * 14);
+    var angles = [];
+    if (lS && lE && lW) { var a1 = angleAt(lS,lE,lW); if (a1!==null) angles.push(a1); }
+    if (rS && rE && rW) { var a2 = angleAt(rS,rE,rW); if (a2!==null) angles.push(a2); }
 
-    document.getElementById("gKcal").value = calories;
-    document.getElementById("gCarb").value = carb;
-    document.getElementById("gProtein").value = protein;
-    document.getElementById("gFat").value = fat;
-    document.getElementById("gFiber").value = fiber;
+    if (!angles.length){
+      coachBanner.textContent = 'دست‌هات رو واضح جلوی دوربین بگیر';
+      return;
+    }
+    var rawAngle = angles.reduce(function(a,b){return a+b;},0)/angles.length;
+    smoothAngle = (smoothAngle===null) ? rawAngle : (smoothAngle*0.7 + rawAngle*0.3);
+
+    var wristYs = [];
+    if (lW) wristYs.push(lW.y);
+    if (rW) wristYs.push(rW.y);
+    var avgWristY = wristYs.length ? wristYs.reduce(function(a,b){return a+b;},0)/wristYs.length : null;
+
+    if (repState === 'down'){
+      coachBanner.textContent = 'آویزون شو، دست‌ها کاملاً باز 🙌';
+      if (smoothAngle < UP_ENTER){
+        repState = 'up';
+        minGapDuringUp = (nose && avgWristY!==null) ? (nose.y - avgWristY) : null;
+      }
+    } else { // 'up'
+      coachBanner.textContent = 'چونه رو بالای دست‌ها ببر ⬆️';
+      if (nose && avgWristY!==null){
+        var gap = nose.y - avgWristY;
+        if (minGapDuringUp===null || gap < minGapDuringUp) minGapDuringUp = gap;
+      }
+      if (smoothAngle > DOWN_EXIT){
+        var now = Date.now();
+        var chinOk = (minGapDuringUp===null) || (minGapDuringUp < CHIN_OK_GAP);
+        if (chinOk && (now-lastRepTime) > MIN_REP_INTERVAL){
+          sessionReps++;
+          lastRepTime = now;
+          bumpRepCount();
+          coachBanner.textContent = 'عالی بود! دوباره 🔥';
+        } else if (!chinOk){
+          coachBanner.textContent = 'چونه رو کامل‌تر بالا ببر، این یکی شمرده نشد';
+        }
+        repState = 'down';
+        minGapDuringUp = null;
+      }
+    }
+  }
+
+  function drawSkeleton(result){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    if (!result || !result.body || !result.body.length) return;
+    var kps = result.body[0].keypoints;
+    var pairs = [['leftshoulder','rightshoulder'],['leftshoulder','leftelbow'],['leftelbow','leftwrist'],
+      ['rightshoulder','rightelbow'],['rightelbow','rightwrist'],['leftshoulder','lefthip'],
+      ['rightshoulder','righthip'],['lefthip','righthip'],['lefthip','leftknee'],['leftknee','leftankle'],
+      ['righthip','rightknee'],['rightknee','rightankle']];
+    ctx.strokeStyle = 'rgba(255,122,51,0.9)';
+    ctx.lineWidth = 4;
+    pairs.forEach(function(p){
+      var a = kpXY(getKP(kps,[p[0]]));
+      var b = kpXY(getKP(kps,[p[1]]));
+      if (a && b){ ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke(); }
+    });
+    ctx.fillStyle = '#ffb648';
+    kps.forEach(function(kp){
+      var xy = kpXY(kp);
+      if (xy && (kp.score===undefined || kp.score>0.25)){
+        ctx.beginPath(); ctx.arc(xy.x,xy.y,5,0,Math.PI*2); ctx.fill();
+      }
+    });
+  }
+
+  function bumpRepCount(){
+    repCountEl.textContent = sessionReps;
+    repCountEl.classList.add('bump');
+    setTimeout(function(){ repCountEl.classList.remove('bump'); }, 180);
+  }
+
+  var detectLoopActive = false;
+  function detectLoop(){
+    if (!running || paused || usingFallback){ detectLoopActive=false; return; }
+    detectLoopActive = true;
+    human.detect(video).then(function(result){
+      drawSkeleton(result);
+      processPose(result);
+      if (running && !paused && !usingFallback) requestAnimationFrame(detectLoop);
+      else detectLoopActive = false;
+    }).catch(function(){
+      if (running && !paused && !usingFallback) requestAnimationFrame(detectLoop);
+      else detectLoopActive = false;
+    });
+  }
+
+  function startTimer(){
+    timerStart = Date.now();
+    clearInterval(timerInterval);
+    timerInterval = setInterval(function(){
+      var sec = Math.floor((Date.now()-timerStart)/1000);
+      document.getElementById('workout-timer').textContent = fmtTime(sec);
+    }, 1000);
+  }
+  function stopTimer(){ clearInterval(timerInterval); }
+
+  function enterFallbackMode(titleMsg, textMsg){
+    usingFallback = true;
+    camFallback.classList.remove('hidden');
+    document.getElementById('fallback-title').textContent = titleMsg || 'دوربین در دسترس نیست';
+    document.getElementById('fallback-text').textContent = textMsg || 'می‌تونی از حالت شمارش دستی استفاده کنی. هر بار که یک بارفیکس زدی، دکمه رو بزن.';
+  }
+
+  function startWorkoutFlow(){
+    sessionReps = 0; manualTapReps = 0;
+    repState = 'down'; smoothAngle = null; minGapDuringUp = null; lastRepTime = 0;
+    repCountEl.textContent = '0';
+    document.getElementById('manual-tap-count').textContent = '0';
+    camFallback.classList.add('hidden');
+    usingFallback = false;
+    paused = false;
+    document.getElementById('btn-pause-workout').textContent = 'مکث';
+    coachBanner.textContent = 'در حال آماده‌سازی دوربین و هوش مصنوعی...';
+    showView('view-workout', {nav:false});
+    running = true;
+    startTimer();
+
+    startCamera().then(function(){
+      return initHuman();
+    }).then(function(){
+      coachBanner.textContent = 'دوربین رو طوری بگیر که کل بدنت دیده بشه';
+      requestAnimationFrame(detectLoop);
+    }).catch(function(err){
+      var isCamErr = err && (err.name==='NotAllowedError' || err.name==='NotFoundError' || err.message && err.message.indexOf('getUserMedia')>-1);
+      if (isCamErr){
+        enterFallbackMode('اجازه دوربین داده نشد', 'برای شمارش خودکار باید به دوربین دسترسی بدی. فعلاً از حالت دستی استفاده کن.');
+      } else {
+        enterFallbackMode('هوش مصنوعی لود نشد', 'مشکلی توی بارگذاری تشخیص حرکت پیش اومد. از حالت شمارش دستی استفاده کن.');
+      }
+    });
+  }
+
+  document.getElementById('btn-rep-plus').addEventListener('click', function(){
+    sessionReps++; bumpRepCount();
+  });
+  document.getElementById('btn-rep-minus').addEventListener('click', function(){
+    sessionReps = Math.max(0, sessionReps-1); bumpRepCount();
+  });
+  document.getElementById('btn-manual-tap').addEventListener('click', function(){
+    manualTapReps++;
+    document.getElementById('manual-tap-count').textContent = manualTapReps;
+  });
+  document.getElementById('btn-pause-workout').addEventListener('click', function(){
+    paused = !paused;
+    document.getElementById('btn-pause-workout').textContent = paused ? 'ادامه' : 'مکث';
+    if (paused){ stopTimer(); coachBanner.textContent = 'تمرین متوقف شده'; }
+    else { timerStart = Date.now() - (timerStart? (Date.now()-timerStart):0); startTimer(); if(!usingFallback) requestAnimationFrame(detectLoop); }
   });
 
-  /* ---------------- INIT ---------------- */
-  async function init(){
-    render();
-    await loadGoals();
-    await loadDay();
-    render();
+  function endWorkout(){
+    var reps = usingFallback ? manualTapReps : sessionReps;
+    running = false; paused = false;
+    stopTimer();
+    stopCamera();
+    if (reps > 0){
+      recordSession(reps).then(function(){ openSummary(reps); });
+    } else {
+      openSummary(0);
+    }
   }
-  init();
+  document.getElementById('btn-finish-workout').addEventListener('click', endWorkout);
+  document.getElementById('btn-finish-manual').addEventListener('click', endWorkout);
+  document.getElementById('btn-exit-workout').addEventListener('click', function(){
+    if (confirm('از تمرین خارج بشی؟ پیشرفت این جلسه ذخیره نمی‌شه.')){
+      running = false; paused = false;
+      stopTimer(); stopCamera();
+      showView('view-home');
+    }
+  });
+
+  function boot(){
+    loadProfile().then(function(p){
+      setTimeout(function(){
+        if (p && p.name && p.nick){
+          ensureTodayRolledIn();
+          showView('view-home');
+        } else {
+          showView('view-ob-name', {nav:false});
+        }
+      }, 500);
+    }).catch(function(){
+      showView('view-ob-name', {nav:false});
+    });
+  }
+  boot();
+
 })();
 </script>
 </body>

@@ -523,22 +523,54 @@
   var memFallback = {};
   var storageOK = !!(window.storage && window.storage.get && window.storage.set);
 
+  var localStorageOK = false;
+  if (!storageOK){
+    try {
+      var _t = '__barfixato_test__';
+      window.localStorage.setItem(_t, '1');
+      window.localStorage.removeItem(_t);
+      localStorageOK = true;
+    } catch(e){ localStorageOK = false; }
+  }
+  // 'cloud'  = Claude's persistent artifact storage (works across devices/users when opened in chat)
+  // 'local'  = this browser's own storage (works when the file is downloaded/opened standalone; single device only)
+  // 'memory' = nothing persists past this page load (private/incognito mode with storage blocked)
+  var storageMode = storageOK ? 'cloud' : (localStorageOK ? 'local' : 'memory');
+
   function sGet(key, shared){
-    if (storageOK){
+    if (storageMode === 'cloud'){
       return window.storage.get(key, !!shared).then(function(r){ return r ? r.value : null; }).catch(function(){ return null; });
+    }
+    if (storageMode === 'local'){
+      try { var v = window.localStorage.getItem(key); return Promise.resolve(v===null ? null : v); }
+      catch(e){ return Promise.resolve(memFallback[key] !== undefined ? memFallback[key] : null); }
     }
     return Promise.resolve(memFallback[key] !== undefined ? memFallback[key] : null);
   }
   function sSet(key, value, shared){
-    if (storageOK){
+    if (storageMode === 'cloud'){
       return window.storage.set(key, value, !!shared).catch(function(){ memFallback[key]=value; return null; });
+    }
+    if (storageMode === 'local'){
+      try { window.localStorage.setItem(key, value); return Promise.resolve(null); }
+      catch(e){ memFallback[key]=value; return Promise.resolve(null); }
     }
     memFallback[key] = value;
     return Promise.resolve(null);
   }
   function sList(prefix, shared){
-    if (storageOK){
+    if (storageMode === 'cloud'){
       return window.storage.list(prefix, !!shared).then(function(r){ return r ? r.keys : []; }).catch(function(){ return []; });
+    }
+    if (storageMode === 'local'){
+      try {
+        var keys = [];
+        for (var i=0;i<window.localStorage.length;i++){
+          var k = window.localStorage.key(i);
+          if (k && k.indexOf(prefix)===0) keys.push(k);
+        }
+        return Promise.resolve(keys);
+      } catch(e){ return Promise.resolve([]); }
     }
     return Promise.resolve(Object.keys(memFallback).filter(function(k){ return k.indexOf(prefix)===0; }));
   }
@@ -684,6 +716,9 @@
     saveProfile().then(function(){ showView('view-home'); });
   });
 
+  /* ============================================================
+     HOME
+  ============================================================ */
   function renderHome(){
     document.getElementById('home-who').textContent = 'سلام ' + profile.name + ' 👋';
     var d = new Date();
@@ -715,6 +750,7 @@
         for (var i=0;i<entries.length;i++){
           if (entries[i].nick === profile.nick && entries[i].total === profile.totalReps) return i+1;
         }
+        // fallback: find by closest match on nick only
         for (var j=0;j<entries.length;j++){ if (entries[j].nick === profile.nick) return j+1; }
         return null;
       });
@@ -736,6 +772,14 @@
   ============================================================ */
   function renderLeaderboard(){
     var list = document.getElementById('lb-list');
+    var subEl = document.querySelector('.lb-sub');
+    if (storageMode === 'local'){
+      subEl.textContent = 'این رنکینگ فقط روی همین گوشی/مرورگرته (چون فایل رو جدا باز کردی)';
+    } else if (storageMode === 'memory'){
+      subEl.textContent = 'حالت خصوصی/ناشناسه — رنکینگ بعد از بستن صفحه پاک می‌شه';
+    } else {
+      subEl.textContent = 'بر اساس مجموع بارفیکس‌ها';
+    }
     list.innerHTML = '<div class="center-msg">در حال بارگذاری...</div>';
     sList('barfixato:leaderboard:', true).then(function(keys){
       if (!keys.length){
@@ -777,6 +821,9 @@
     });
   }
 
+  /* ============================================================
+     PROFILE
+  ============================================================ */
   function renderProfile(){
     document.getElementById('profile-avatar').textContent = (profile.name||'?').trim().charAt(0).toUpperCase();
     document.getElementById('profile-name').textContent = profile.name;
@@ -1124,6 +1171,11 @@
   });
 
   function boot(){
+    if (storageMode === 'memory'){
+      setTimeout(function(){
+        alert('توجه: مرورگرت اجازه ذخیره‌سازی نمی‌ده (مثلاً حالت خصوصی/Incognito فعاله)، پس اطلاعات این جلسه بعد از بستن صفحه پاک می‌شن. برای ذخیره دائمی، فایل رو با یک مرورگر عادی (نه خصوصی) باز کن.');
+      }, 900);
+    }
     loadProfile().then(function(p){
       setTimeout(function(){
         if (p && p.name && p.nick){

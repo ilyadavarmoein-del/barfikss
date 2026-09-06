@@ -793,12 +793,15 @@
   });
   document.getElementById('btn-reset-data').addEventListener('click', function(){
     if (confirm('مطمئنی می‌خوای همه اطلاعاتت پاک بشه؟ این کار برگشت‌ناپذیره.')){
-      profile=null;
-      localRemove(PROFILE_KEY);
-      deleteRemoteProfile().catch(function(e){console.warn(e);}).then(function(){
+      deleteRemoteProfile().then(function(){
+        profile=null;
+        localRemove(PROFILE_KEY);
         inputName.value=''; inputNick.value='';
         btnNameNext.disabled = true; btnNickNext.disabled = true;
         showView('view-ob-name', {nav:false});
+      }).catch(function(e){
+        console.error('Delete failed', e);
+        alert('حذف اطلاعات روی سرور با خطا مواجه شد:\n' + (e && e.message ? e.message : JSON.stringify(e)) + '\n\nاطلاعات محلی پاک نشد تا رنکینگ خراب نشه.');
       });
     }
   });

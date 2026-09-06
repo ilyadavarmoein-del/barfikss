@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover">
-<title>بارفیکساتو بزن</title>
+<title>بارفیکساتو</title>
 <style>
   :root{
     --bg:#0a0e13;
@@ -512,159 +512,152 @@
 
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/human/3.3.6/human.js"></script>
 <script>
 (function(){
   "use strict";
 
   /* ============================================================
-     STORAGE LAYER  (window.storage with graceful in-memory fallback)
+     CLOUD STORAGE / SHARED LEADERBOARD
+     Uses Supabase for a real shared online ranking.
+     Replace SUPABASE_URL and SUPABASE_KEY with your project values.
+     Never put a service_role/secret key in this browser file.
   ============================================================ */
+  var SUPABASE_URL = 'https://wcqsgwzggimliqagkgjp.supabase.co';
+  var SUPABASE_KEY = 'sb_publishable_K7ZEk7xNcP3qCDGVRy_5Sg_S5RbbMaq';
+  var cloudEnabled = !!(window.supabase && SUPABASE_URL.indexOf('YOUR_') !== 0 && SUPABASE_KEY.indexOf('YOUR_') !== 0);
+  var sb = cloudEnabled ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+    auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}
+  }) : null;
   var memFallback = {};
-  var storageOK = !!(window.storage && window.storage.get && window.storage.set);
-
   var localStorageOK = false;
-  if (!storageOK){
-    try {
-      var _t = '__barfixato_test__';
-      window.localStorage.setItem(_t, '1');
-      window.localStorage.removeItem(_t);
-      localStorageOK = true;
-    } catch(e){ localStorageOK = false; }
+  try {
+    var testKey='__barfixato_test__';
+    localStorage.setItem(testKey,'1'); localStorage.removeItem(testKey); localStorageOK=true;
+  } catch(e) {}
+  function localGet(key){
+    if(localStorageOK){try{return localStorage.getItem(key);}catch(e){}}
+    return memFallback[key]!==undefined?memFallback[key]:null;
   }
-  // 'cloud'  = Claude's persistent artifact storage (works across devices/users when opened in chat)
-  // 'local'  = this browser's own storage (works when the file is downloaded/opened standalone; single device only)
-  // 'memory' = nothing persists past this page load (private/incognito mode with storage blocked)
-  var storageMode = storageOK ? 'cloud' : (localStorageOK ? 'local' : 'memory');
-
-  function sGet(key, shared){
-    if (storageMode === 'cloud'){
-      return window.storage.get(key, !!shared).then(function(r){ return r ? r.value : null; }).catch(function(){ return null; });
-    }
-    if (storageMode === 'local'){
-      try { var v = window.localStorage.getItem(key); return Promise.resolve(v===null ? null : v); }
-      catch(e){ return Promise.resolve(memFallback[key] !== undefined ? memFallback[key] : null); }
-    }
-    return Promise.resolve(memFallback[key] !== undefined ? memFallback[key] : null);
+  function localSet(key,value){
+    if(localStorageOK){try{localStorage.setItem(key,value);return;}catch(e){}}
+    memFallback[key]=value;
   }
-  function sSet(key, value, shared){
-    if (storageMode === 'cloud'){
-      return window.storage.set(key, value, !!shared).catch(function(){ memFallback[key]=value; return null; });
-    }
-    if (storageMode === 'local'){
-      try { window.localStorage.setItem(key, value); return Promise.resolve(null); }
-      catch(e){ memFallback[key]=value; return Promise.resolve(null); }
-    }
-    memFallback[key] = value;
-    return Promise.resolve(null);
+  function localRemove(key){
+    if(localStorageOK){try{localStorage.removeItem(key);return;}catch(e){}}
+    delete memFallback[key];
   }
-  function sList(prefix, shared){
-    if (storageMode === 'cloud'){
-      return window.storage.list(prefix, !!shared).then(function(r){ return r ? r.keys : []; }).catch(function(){ return []; });
-    }
-    if (storageMode === 'local'){
-      try {
-        var keys = [];
-        for (var i=0;i<window.localStorage.length;i++){
-          var k = window.localStorage.key(i);
-          if (k && k.indexOf(prefix)===0) keys.push(k);
-        }
-        return Promise.resolve(keys);
-      } catch(e){ return Promise.resolve([]); }
-    }
-    return Promise.resolve(Object.keys(memFallback).filter(function(k){ return k.indexOf(prefix)===0; }));
+  var cloudUser=null;
+  function initCloud(){
+    if(!cloudEnabled) return Promise.resolve(null);
+    return sb.auth.getSession().then(function(res){
+      var session=res.data&&res.data.session;
+      if(session&&session.user){cloudUser=session.user;return cloudUser;}
+      return sb.auth.signInAnonymously().then(function(r){
+        if(r.error) throw r.error;
+        cloudUser=r.data.user; return cloudUser;
+      });
+    });
   }
+  function loadRemoteProfile(){
+    if(!cloudEnabled||!cloudUser) return Promise.resolve(null);
+    return sb.from('profiles').select('*').eq('id',cloudUser.id).maybeSingle().then(function(r){
+      if(r.error) throw r.error; return r.data||null;
+    });
+  }
+  function ensureRemoteProfile(name,nick){
+    if(!cloudEnabled||!cloudUser) return Promise.resolve(null);
+    return sb.rpc('ensure_my_profile',{p_name:name,p_nick:nick}).then(function(r){
+      if(r.error) throw r.error; return r.data;
+    });
+  }
+  function updateRemoteNick(nick){
+    if(!cloudEnabled||!cloudUser) return Promise.resolve();
+    return sb.rpc('update_my_nick',{p_nick:nick}).then(function(r){if(r.error)throw r.error;});
+  }
+  function recordRemoteWorkout(reps){
+    if(!cloudEnabled||!cloudUser) return Promise.resolve(null);
+    return sb.rpc('record_workout',{p_reps:reps}).then(function(r){
+      if(r.error) throw r.error; return r.data;
+    });
+  }
+  function deleteRemoteProfile(){
+    if(!cloudEnabled||!cloudUser) return Promise.resolve();
+    return sb.rpc('delete_my_profile').then(function(r){if(r.error)throw r.error;});
+  }
+  function loadLeaderboardRemote(){
+    if(!cloudEnabled) return Promise.resolve([]);
+    return sb.from('profiles').select('id,name,nick,total_reps,streak,best_streak,updated_at')
+      .order('total_reps',{ascending:false}).order('updated_at',{ascending:true}).limit(100)
+      .then(function(r){
+        if(r.error) throw r.error;
+        return (r.data||[]).map(function(e){return {id:e.id,name:e.name,nick:e.nick,total:Number(e.total_reps||0),streak:Number(e.streak||0),bestStreak:Number(e.best_streak||0)};});
+      });
+  }
+  function saveLocalProfile(){if(profile)localSet(PROFILE_KEY,JSON.stringify(profile));}
 
   /* ============================================================
      APP STATE
   ============================================================ */
-  var PROFILE_KEY = 'barfixato:profile';
-  var profile = null; // {id,name,nick,totalReps,sessions,streak,bestStreak,lastActiveDate,firstUseDate}
-
-  function todayStr(){
-    var d = new Date();
-    return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+  var PROFILE_KEY='barfixato:profile';
+  var profile=null;
+  function todayStr(){var d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
+  function daysBetween(a,b){var da=new Date(a),db=new Date(b);da.setHours(0,0,0,0);db.setHours(0,0,0,0);return Math.round((db-da)/86400000);}
+  function uid(){return 'u'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);}
+  var TIERS=[{min:0,label:'تازه‌کار',emoji:'🌱'},{min:3,label:'شعله‌ور',emoji:'🔥'},{min:7,label:'جنگجوی هفته',emoji:'⚔️'},{min:14,label:'ماشین بارفیکس',emoji:'🦾'},{min:30,label:'افسانه‌ای',emoji:'👑'},{min:100,label:'جاودانه',emoji:'🌟'}];
+  function tierFor(streak){var t=TIERS[0];for(var i=0;i<TIERS.length;i++)if(streak>=TIERS[i].min)t=TIERS[i];return t;}
+  function profileFromRemote(row){
+    if(!row)return null;
+    return {id:row.id,name:row.name||'',nick:row.nick||'',totalReps:Number(row.total_reps||0),sessions:[],streak:Number(row.streak||0),bestStreak:Number(row.best_streak||0),lastActiveDate:row.last_active_date||null,firstUseDate:row.first_use_date||todayStr(),todayReps:Number(row.today_reps||0),todayDate:row.today_date||todayStr()};
   }
-  function daysBetween(a,b){
-    var da = new Date(a), db = new Date(b);
-    da.setHours(0,0,0,0); db.setHours(0,0,0,0);
-    return Math.round((db-da)/86400000);
-  }
-  function uid(){
-    return 'u'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
-  }
-
-  var TIERS = [
-    {min:0,   label:'تازه‌کار', emoji:'🌱'},
-    {min:3,   label:'شعله‌ور', emoji:'🔥'},
-    {min:7,   label:'جنگجوی هفته', emoji:'⚔️'},
-    {min:14,  label:'ماشین بارفیکس', emoji:'🦾'},
-    {min:30,  label:'افسانه‌ای', emoji:'👑'},
-    {min:100, label:'جاودانه', emoji:'🌟'}
-  ];
-  function tierFor(streak){
-    var t = TIERS[0];
-    for (var i=0;i<TIERS.length;i++){ if (streak>=TIERS[i].min) t = TIERS[i]; }
-    return t;
-  }
-
   function loadProfile(){
-    return sGet(PROFILE_KEY, false).then(function(raw){
-      if (raw){
-        try { profile = JSON.parse(raw); } catch(e){ profile = null; }
+    return initCloud().then(function(){return loadRemoteProfile().catch(function(){return null;});}).then(function(remote){
+      if(remote){profile=profileFromRemote(remote);saveLocalProfile();return profile;}
+      var raw=localGet(PROFILE_KEY);
+      if(raw){try{profile=JSON.parse(raw);}catch(e){profile=null;}}
+      if(profile&&cloudUser){
+        profile.id=cloudUser.id;
+        if(!profile.todayDate)profile.todayDate=todayStr();
+        if(profile.todayReps===undefined)profile.todayReps=0;
+        return ensureRemoteProfile(profile.name,profile.nick).then(function(row){
+          var r=profileFromRemote(row);if(r)profile=r;saveLocalProfile();return profile;
+        }).catch(function(){return profile;});
       }
       return profile;
     });
   }
   function saveProfile(){
-    return sSet(PROFILE_KEY, JSON.stringify(profile), false).then(function(){
-      return sSet('barfixato:leaderboard:'+profile.id, JSON.stringify({
-        nick: profile.nick, total: profile.totalReps, streak: profile.streak, updatedAt: Date.now()
-      }), true);
-    });
+    saveLocalProfile();
+    if(!cloudEnabled||!cloudUser||!profile)return Promise.resolve();
+    return ensureRemoteProfile(profile.name,profile.nick).then(function(row){var r=profileFromRemote(row);if(r)profile=r;saveLocalProfile();}).catch(function(e){console.warn('Cloud profile sync failed',e);});
   }
-
   function ensureTodayRolledIn(){
-    // called on load: if lastActiveDate exists and gap > 1 day, streak resets to 0 (broken)
-    if (!profile.lastActiveDate) return;
-    var diff = daysBetween(profile.lastActiveDate, todayStr());
-    if (diff > 1){ profile.streak = 0; }
+    if(!profile)return Promise.resolve();
+    if(profile.todayDate!==todayStr())profile.todayReps=0;
+    if(!profile.lastActiveDate)return Promise.resolve();
+    if(daysBetween(profile.lastActiveDate,todayStr())>1){profile.streak=0;return saveProfile();}
+    return Promise.resolve();
   }
-
   function recordSession(reps){
-    var today = todayStr();
-    profile.totalReps += reps;
-    profile.sessions.push({date:today, reps:reps, ts:Date.now()});
-    if (profile.sessions.length > 200) profile.sessions = profile.sessions.slice(-200);
-
-    var isFirstToday = true;
-    for (var i=0;i<profile.sessions.length-1;i++){
-      if (profile.sessions[i].date === today){ isFirstToday = false; break; }
+    var today=todayStr();if(!profile)return Promise.resolve();
+    if(!profile.sessions)profile.sessions=[];
+    profile.totalReps+=reps;profile.sessions.push({date:today,reps:reps,ts:Date.now()});
+    if(profile.sessions.length>200)profile.sessions=profile.sessions.slice(-200);
+    if(!profile.lastActiveDate)profile.streak=1;
+    else {var diff=daysBetween(profile.lastActiveDate,today);if(diff===1)profile.streak+=1;else if(diff>1)profile.streak=1;}
+    profile.lastActiveDate=today;if(profile.streak>profile.bestStreak)profile.bestStreak=profile.streak;
+    profile.todayDate=today;profile.todayReps=Number(profile.todayReps||0)+reps;
+    if(cloudEnabled&&cloudUser){
+      return recordRemoteWorkout(reps).then(function(row){var r=profileFromRemote(row);if(r)profile=r;saveLocalProfile();}).catch(function(e){console.warn('Cloud workout sync failed',e);saveLocalProfile();});
     }
-    if (!profile.lastActiveDate){
-      profile.streak = 1;
-    } else {
-      var diff = daysBetween(profile.lastActiveDate, today);
-      if (diff === 0){ /* already active today, streak unchanged */ }
-      else if (diff === 1){ profile.streak += 1; }
-      else { profile.streak = 1; }
-    }
-    profile.lastActiveDate = today;
-    if (profile.streak > profile.bestStreak) profile.bestStreak = profile.streak;
-    return saveProfile();
+    saveLocalProfile();return Promise.resolve();
   }
-
   function todayReps(){
-    var today = todayStr(), sum = 0;
-    for (var i=0;i<profile.sessions.length;i++){
-      if (profile.sessions[i].date === today) sum += profile.sessions[i].reps;
-    }
-    return sum;
+    if(profile&&profile.todayDate===todayStr()&&profile.todayReps!==undefined)return Number(profile.todayReps||0);
+    var today=todayStr(),sum=0,sessions=profile.sessions||[];for(var i=0;i<sessions.length;i++)if(sessions[i].date===today)sum+=sessions[i].reps;return sum;
   }
-  function daysInApp(){
-    if (!profile.firstUseDate) return 1;
-    return daysBetween(profile.firstUseDate, todayStr()) + 1;
-  }
+  function daysInApp(){if(!profile.firstUseDate)return 1;return daysBetween(profile.firstUseDate,todayStr())+1;}
 
   /* ============================================================
      VIEW ROUTER
@@ -709,11 +702,12 @@
     var name = inputName.value.trim().slice(0,30);
     var nick = inputNick.value.trim().slice(0,24);
     profile = {
-      id: uid(), name: name, nick: nick,
-      totalReps: 0, sessions: [], streak: 0, bestStreak: 0,
-      lastActiveDate: null, firstUseDate: todayStr()
+      id: cloudUser ? cloudUser.id : uid(), name:name, nick:nick, totalReps:0, sessions:[], streak:0, bestStreak:0,
+      lastActiveDate:null, firstUseDate:todayStr(), todayReps:0, todayDate:todayStr()
     };
-    saveProfile().then(function(){ showView('view-home'); });
+    if(cloudEnabled&&cloudUser){
+      ensureRemoteProfile(name,nick).then(function(row){var r=profileFromRemote(row);if(r)profile=r;saveLocalProfile();showView('view-home');}).catch(function(){saveProfile().then(function(){showView('view-home');});});
+    }else saveProfile().then(function(){showView('view-home');});
   });
 
   /* ============================================================
@@ -738,23 +732,11 @@
   }
 
   function computeMyRank(){
-    return sList('barfixato:leaderboard:', true).then(function(keys){
-      if (!keys.length) return null;
-      return Promise.all(keys.map(function(k){ return sGet(k, true); })).then(function(vals){
-        var entries = [];
-        vals.forEach(function(v){
-          if (!v) return;
-          try { entries.push(JSON.parse(v)); } catch(e){}
-        });
-        entries.sort(function(a,b){ return (b.total||0)-(a.total||0); });
-        for (var i=0;i<entries.length;i++){
-          if (entries[i].nick === profile.nick && entries[i].total === profile.totalReps) return i+1;
-        }
-        // fallback: find by closest match on nick only
-        for (var j=0;j<entries.length;j++){ if (entries[j].nick === profile.nick) return j+1; }
-        return null;
-      });
-    }).catch(function(){ return null; });
+    if(!cloudEnabled)return Promise.resolve(null);
+    return loadLeaderboardRemote().then(function(entries){
+      var my=null;for(var i=0;i<entries.length;i++)if(entries[i].id===profile.id){my=entries[i];break;}
+      if(!my)return null;var rank=1;for(var j=0;j<entries.length;j++)if(entries[j].total>my.total)rank++;return rank;
+    }).catch(function(){return null;});
   }
 
   document.getElementById('btn-start-workout').addEventListener('click', function(){ startWorkoutFlow(); });
@@ -771,50 +753,20 @@
      LEADERBOARD
   ============================================================ */
   function renderLeaderboard(){
-    var list = document.getElementById('lb-list');
-    var subEl = document.querySelector('.lb-sub');
-    if (storageMode === 'local'){
-      subEl.textContent = 'این رنکینگ فقط روی همین گوشی/مرورگرته (چون فایل رو جدا باز کردی)';
-    } else if (storageMode === 'memory'){
-      subEl.textContent = 'حالت خصوصی/ناشناسه — رنکینگ بعد از بستن صفحه پاک می‌شه';
-    } else {
-      subEl.textContent = 'بر اساس مجموع بارفیکس‌ها';
-    }
-    list.innerHTML = '<div class="center-msg">در حال بارگذاری...</div>';
-    sList('barfixato:leaderboard:', true).then(function(keys){
-      if (!keys.length){
-        list.innerHTML = '<div class="lb-empty">هنوز کسی توی رنکینگ نیست.<br>اولین نفر باش! 💪</div>';
-        return;
-      }
-      return Promise.all(keys.map(function(k){ return sGet(k, true); })).then(function(vals){
-        var entries = [];
-        vals.forEach(function(v){
-          if (!v) return;
-          try { entries.push(JSON.parse(v)); } catch(e){}
-        });
-        entries.sort(function(a,b){ return (b.total||0)-(a.total||0); });
-        entries = entries.slice(0, 100);
-        if (!entries.length){
-          list.innerHTML = '<div class="lb-empty">هنوز کسی توی رنکینگ نیست.<br>اولین نفر باش! 💪</div>';
-          return;
-        }
-        var html = '';
-        var medals = ['🥇','🥈','🥉'];
-        entries.forEach(function(e, i){
-          var isMe = (e.nick === profile.nick);
-          html += '<div class="lb-row'+(isMe?' me':'')+'">' +
-            '<div class="lb-rank">'+(medals[i] || (i+1))+'</div>' +
-            '<div class="lb-name"><div class="n">'+escapeHtml(e.nick||'ناشناس')+(isMe?' (تو)':'')+'</div>' +
-            '<div class="s">استریک '+ (e.streak||0) +' روزه</div></div>' +
-            '<div class="lb-total">'+(e.total||0)+'<span class="u">بارفیکس</span></div>' +
-            '</div>';
-        });
-        list.innerHTML = html;
+    var list=document.getElementById('lb-list');
+    list.innerHTML='<div class="center-msg">در حال بارگذاری رنکینگ آنلاین...</div>';
+    if(!cloudEnabled){list.innerHTML='<div class="lb-empty">رنکینگ آنلاین هنوز تنظیم نشده.<br>مقادیر Supabase را در فایل وارد کن.</div>';return;}
+    loadLeaderboardRemote().then(function(entries){
+      if(!entries.length){list.innerHTML='<div class="lb-empty">هنوز کسی توی رنکینگ نیست.<br>اولین نفر باش! 💪</div>';return;}
+      var html='',medals=['🥇','🥈','🥉'];
+      entries.forEach(function(e,i){
+        var isMe=e.id===profile.id,rank=1;for(var j=0;j<entries.length;j++)if(entries[j].total>e.total)rank++;
+        html+='<div class="lb-row'+(isMe?' me':'')+'"><div class="lb-rank">'+(medals[i]||rank)+'</div><div class="lb-name"><div class="n">'+escapeHtml(e.nick||'ناشناس')+(isMe?' (تو)':'')+'</div><div class="s">استریک '+(e.streak||0)+' روزه</div></div><div class="lb-total">'+(e.total||0)+'<span class="u">بارفیکس</span></div></div>';
       });
-    }).catch(function(){
-      list.innerHTML = '<div class="lb-empty">مشکلی توی بارگذاری رنکینگ پیش اومد.<br>یه بار دیگه امتحان کن.</div>';
-    });
+      list.innerHTML=html;
+    }).catch(function(e){console.error(e);list.innerHTML='<div class="lb-empty">خطا در بارگذاری رنکینگ.<br>تنظیمات Supabase را بررسی کن.</div>';});
   }
+
   function escapeHtml(s){
     return String(s).replace(/[&<>"']/g, function(c){
       return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
@@ -835,14 +787,15 @@
   document.getElementById('btn-edit-nick').addEventListener('click', function(){
     var v = prompt('لقب جدید:', profile.nick);
     if (v && v.trim()){
-      profile.nick = v.trim().slice(0,24);
-      saveProfile().then(renderProfile);
+      profile.nick=v.trim().slice(0,24);
+      updateRemoteNick(profile.nick).then(function(){saveLocalProfile();renderProfile();}).catch(function(){saveProfile().then(renderProfile);});
     }
   });
   document.getElementById('btn-reset-data').addEventListener('click', function(){
     if (confirm('مطمئنی می‌خوای همه اطلاعاتت پاک بشه؟ این کار برگشت‌ناپذیره.')){
-      profile = null;
-      sSet(PROFILE_KEY, '', false).then(function(){
+      profile=null;
+      localRemove(PROFILE_KEY);
+      deleteRemoteProfile().catch(function(e){console.warn(e);}).then(function(){
         inputName.value=''; inputNick.value='';
         btnNameNext.disabled = true; btnNickNext.disabled = true;
         showView('view-ob-name', {nav:false});
@@ -1170,17 +1123,16 @@
     }
   });
 
+  /* ============================================================
+     BOOT
+  ============================================================ */
   function boot(){
-    if (storageMode === 'memory'){
-      setTimeout(function(){
-        alert('توجه: مرورگرت اجازه ذخیره‌سازی نمی‌ده (مثلاً حالت خصوصی/Incognito فعاله)، پس اطلاعات این جلسه بعد از بستن صفحه پاک می‌شن. برای ذخیره دائمی، فایل رو با یک مرورگر عادی (نه خصوصی) باز کن.');
-      }, 900);
-    }
     loadProfile().then(function(p){
       setTimeout(function(){
         if (p && p.name && p.nick){
-          ensureTodayRolledIn();
-          showView('view-home');
+          ensureTodayRolledIn().then(function(){
+            showView('view-home');
+          });
         } else {
           showView('view-ob-name', {nav:false});
         }
